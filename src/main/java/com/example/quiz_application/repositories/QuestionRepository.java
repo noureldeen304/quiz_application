@@ -1,7 +1,6 @@
 package com.example.quiz_application.repositories;
 
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,9 +19,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     Optional<List<Question>> findAllByCategory(Category category);
 
     Optional<Question> findByQuestionTitle(String questionTitle);
-
-    // @Query(nativeQuery = true, value = "SELECT * FROM QUESTION s WHERE s.question_title= :question_title")
-    // Optional<Question> findByQuestion_title(String question_title);
 
     @Query(nativeQuery = true, value = "SELECT * FROM QUESTION S WHERE S.CATEGORY_id = :categoryId ORDER BY RANDOM() LIMIT :noOfQuestions")
     Optional<List<Question>> getRandomQuestionsOfSpecificCategory(Integer categoryId, Integer noOfQuestions);

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ErrorControllerAdvisor {
 
-    @ExceptionHandler(InvalidInputDataException.class)
-    public ResponseEntity<String> handleInvalidInputException(InvalidInputDataException ex) {
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleInvalidInputException(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 

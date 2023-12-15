@@ -29,12 +29,17 @@ public class QuizAdminController {
         return quizService.getAllQuizzes();
     }
 
-    @PostMapping(value = "/create-quiz-randomly")
+    @GetMapping("/category/{category}")
+    public List<QuizAdminDTO> getMethodName(@PathVariable String category) {
+        return quizService.getQuizzesByCategoryName(category);
+    }
+
+    @PostMapping(value = "/create-quiz-with-random-questions")
     public ResponseEntity<String> createQuizWithRandomQuestions(@RequestParam String categoryName,
             @RequestParam Integer noOfQuestions,
             @RequestParam String version) {
-        quizService.createQuizRandomly(categoryName, noOfQuestions, version);
-        return ResponseEntity.status(HttpStatus.CREATED).body("The quiz created successfully");
+        quizService.createQuizWithRandomQuestions(categoryName, noOfQuestions, version);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Quiz created successfully");
     }
 
     @PostMapping(value = "/create-quiz")
@@ -42,12 +47,54 @@ public class QuizAdminController {
             @RequestParam String version,
             String ids) {
         quizService.createQuizWithSpecificQuestionsIds(categoryName, version, ids);
-        return ResponseEntity.status(HttpStatus.CREATED).body("The quiz created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Quiz created successfully");
     }
 
-    @PutMapping("/update-quiz/{id}")
-    public ResponseEntity<String> updateQuizById(@PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.OK).body("");
+    @PutMapping("/update-quiz/{id}/update-version")
+    public ResponseEntity<String> updateVersionOfQuiz(@PathVariable Integer id,
+            @RequestParam(required = false) String version) {
+
+        quizService.updateVersionOfQuiz(id, version);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+    }
+
+    @PutMapping("/update-quiz/{id}/add-random-questions")
+    public ResponseEntity<String> addSpecificNumberOfRandomQuestionsToQuiz(@PathVariable Integer id,
+            @RequestParam(required = false) Integer noOfQuestions) {
+
+        quizService.addSpecificNumberOfRandomQuestionsToQuiz(id, noOfQuestions);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+    }
+
+    @PutMapping("/update-quiz/{id}/remove-random-questions")
+    public ResponseEntity<String> removeSpecificNumberOfRandomQuestionsFromQuiz(@PathVariable Integer id,
+            @RequestParam(required = false) Integer noOfQuestions) {
+
+        quizService.removeSpecificNumberOfRandomQuestionsFromQuiz(id, noOfQuestions);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+    }
+
+    @PutMapping("/update-quiz/{id}/add-specific-questions")
+    public ResponseEntity<String> addSpecificNumberOfSelectedQuestionsToQuiz(@PathVariable Integer id,
+            @RequestParam(required = false) String ids) {
+
+        quizService.addSpecificNumberOfSelectedQuestionsToQuiz(id, ids);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+    }
+
+    @PutMapping("/update-quiz/{id}/remove-specific-questions")
+    public ResponseEntity<String> removeSpecificNumberOfSelectedQuestionsFromQuiz(@PathVariable Integer id,
+            @RequestParam(required = false) String ids) {
+
+        quizService.removeSpecificNumberOfSelectedQuestionsFromQuiz(id, ids);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+    }
+
+    @PutMapping("/update-quiz/{id}/remove-all-questions")
+    public ResponseEntity<String> removeAllQuestionsFromQuizById(@PathVariable Integer id) {
+
+        quizService.removeAllQuestionsFromQuizById(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
     }
 
     @DeleteMapping("/remove-quiz/{id}")

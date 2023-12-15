@@ -1,6 +1,8 @@
 package com.example.quiz_application.model;
 
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,4 +35,8 @@ public class Quiz {
 
     @ManyToMany
     List<Question> questions;
+
+    public List<Integer> getQuestionsIds() {
+        return questions.stream().map(question -> question.getId()).collect(Collectors.toList());
+    }
 }

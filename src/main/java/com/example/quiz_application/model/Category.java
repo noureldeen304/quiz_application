@@ -1,7 +1,7 @@
 package com.example.quiz_application.model;
 
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -33,5 +33,9 @@ public class Category {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "category")
     List<Question> questions;
+
+    public List<Integer> getQuestionsIds() {
+        return questions.stream().map(question -> question.getId()).collect(Collectors.toList());
+    }
     
 }

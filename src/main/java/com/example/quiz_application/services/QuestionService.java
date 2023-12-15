@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import com.example.quiz_application.Converters.Converter;
 import com.example.quiz_application.dto.admin.QuestionAdminDTO;
 import com.example.quiz_application.enums.DifficultyLevel;
-import com.example.quiz_application.exceptions.InvalidInputDataException;
-import com.example.quiz_application.exceptions.InvalidInputDataExceptionWithSuggestions;
 import com.example.quiz_application.model.Category;
 import com.example.quiz_application.model.Question;
 import com.example.quiz_application.repositories.CategoryRepository;
@@ -35,7 +33,7 @@ public class QuestionService {
 
     public List<QuestionAdminDTO> getQuestionsByCategory(String category) {
         Category categoryFromDB = categoryRepository.findByCategoryName(category)
-                .orElseThrow(() -> new InvalidInputDataException("category", category));
+                .orElseThrow(() -> new IllegalStateException("There is no category" + " named: " + category));
         return Converter.convertToDTOs(categoryFromDB.getQuestions(), QuestionAdminDTO.class);
     }
 
@@ -122,7 +120,8 @@ public class QuestionService {
             ensureFieldHasDifferentValueInDB("CategoryName", questionAdminDTO.getCategoryName(),
                     questionFromDB.getCategory().getCategoryName());
             Category categoryEntity = categoryRepository.findByCategoryName(questionAdminDTO.getCategoryName())
-                    .orElseThrow(() -> new InvalidInputDataException("category", questionAdminDTO.getCategoryName()));
+                    .orElseThrow(() -> new IllegalStateException(
+                            "There is no category" + " named: " + questionAdminDTO.getCategoryName()));
             questionFromDB.setCategory(categoryEntity);
         }
 
@@ -173,8 +172,9 @@ public class QuestionService {
         try {
             DifficultyLevel.valueOf(insertedDifficultyLevel.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new InvalidInputDataExceptionWithSuggestions("difficulty level", insertedDifficultyLevel,
-                    availableDifficultyLevel);
+            throw new IllegalStateException("There is no difficulty level" + " named: " + insertedDifficultyLevel
+                    + "\nAvailable values: " + availableDifficultyLevel);
+
         }
     }
 

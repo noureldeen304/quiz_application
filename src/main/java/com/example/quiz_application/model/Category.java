@@ -34,6 +34,9 @@ public class Category {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "category")
     List<Question> questions;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "category")
+    List<Quiz> quizzes;
+
     public List<Integer> getQuestionsIds() {
         return questions.stream().map(question -> question.getId()).collect(Collectors.toList());
     }

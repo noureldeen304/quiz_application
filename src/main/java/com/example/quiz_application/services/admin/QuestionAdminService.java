@@ -1,4 +1,4 @@
-package com.example.quiz_application.services;
+package com.example.quiz_application.services.admin;
 
 import java.util.List;
 import java.util.Arrays;
@@ -18,7 +18,7 @@ import com.example.quiz_application.repositories.QuestionRepository;
 import jakarta.transaction.Transactional;
 
 @Service
-public class QuestionService {
+public class QuestionAdminService {
     @Autowired
     QuestionRepository questionRepository;
 

@@ -1,4 +1,4 @@
-package com.example.quiz_application.controllers;
+package com.example.quiz_application.controllers.admin;
 
 import java.util.Comparator;
 import java.util.List;
@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quiz_application.dto.admin.QuestionAdminDTO;
-import com.example.quiz_application.services.QuestionService;
+import com.example.quiz_application.services.admin.QuestionAdminService;
 
 @RestController
 @RequestMapping("/admin/questions")
 public class QuestionAdminController {
     @Autowired
-    QuestionService service;
+    QuestionAdminService service;
 
     @GetMapping
     public List<QuestionAdminDTO> getAllQuestions() {

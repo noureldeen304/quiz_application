@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Integer> {
     List<Quiz> findByCategory(Category category);
+
+    List<Quiz> findByCategoryAndVersion(Category category, String version);
 }

@@ -1,4 +1,4 @@
-package com.example.quiz_application.services;
+package com.example.quiz_application.services.admin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ import com.example.quiz_application.repositories.QuizRepository;
 import jakarta.transaction.Transactional;
 
 @Service
-public class QuizService {
+public class QuizAdminService {
     @Autowired
     QuestionRepository questionRepository;
     @Autowired
@@ -33,10 +33,24 @@ public class QuizService {
         return Converter.convertToDTOs(quizRepository.findAll(), QuizAdminDTO.class);
     }
 
-    public List<QuizAdminDTO> getQuizzesByCategoryName(String category) {
-        Category categoryEntity = categoryRepository.findByCategoryName(category)
-                .orElseThrow(() -> new IllegalStateException("category"));
+    public List<QuizAdminDTO> getQuizzesByCategoryName(String categoryName) {
+        Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
+                .orElseThrow(() -> new IllegalStateException("There is no category with this name: " + categoryName));
         return Converter.convertToDTOs(quizRepository.findByCategory(categoryEntity), QuizAdminDTO.class);
+    }
+
+    public QuizAdminDTO getQuizzesByCategoryNameAndVersion(String categoryName, String version) {
+        Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
+                .orElseThrow(() -> new IllegalStateException("version"));
+
+        List<String> verstionsOfCategoryEntity = quizRepository.findByCategory(categoryEntity).stream()
+                .map(Quiz::getVersion).collect(Collectors.toList());
+        if (!verstionsOfCategoryEntity.contains(version)) {
+            throw new IllegalStateException(
+                    "Quiz with this version (" + version + ") doesn't exist for this category (" + categoryName + ")");
+        }
+        return Converter.convertToDTO(quizRepository.findByCategoryAndVersion(categoryEntity, version).get(0),
+                QuizAdminDTO.class);
     }
 
     public void createQuizWithRandomQuestions(String categoryName, Integer noOfQuestions, String version) {

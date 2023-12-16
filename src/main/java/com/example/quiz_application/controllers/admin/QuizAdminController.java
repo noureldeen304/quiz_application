@@ -1,9 +1,9 @@
-package com.example.quiz_application.controllers;
+package com.example.quiz_application.controllers.admin;
 
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quiz_application.dto.admin.QuizAdminDTO;
-import com.example.quiz_application.services.QuizService;
+import com.example.quiz_application.services.admin.QuizAdminService;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequestMapping(path = "admin/quizzes")
 public class QuizAdminController {
     @Autowired
-    QuizService quizService;
+    QuizAdminService quizService;
 
     @GetMapping
     public List<QuizAdminDTO> getAllQuizzes() {
@@ -30,8 +30,14 @@ public class QuizAdminController {
     }
 
     @GetMapping("/category/{category}")
-    public List<QuizAdminDTO> getMethodName(@PathVariable String category) {
+    public List<QuizAdminDTO> getQuizzesByCategoryName(@PathVariable String category) {
         return quizService.getQuizzesByCategoryName(category);
+    }
+
+    @GetMapping("category/{category}/version/{version}")
+    public QuizAdminDTO getQuizzesByCategoryNameAndVersion(@PathVariable String category,
+            @PathVariable String version) {
+        return quizService.getQuizzesByCategoryNameAndVersion(category, version);
     }
 
     @PostMapping(value = "/create-quiz-with-random-questions")

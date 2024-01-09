@@ -22,10 +22,10 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @Builder
-public class Admin {
+public class Student {
     @Id
-    @SequenceGenerator(name = "admin_sequence", sequenceName = "admin_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "admin_sequence")
+    @SequenceGenerator(name = "student_sequence", sequenceName = "student_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "student_sequence")
     private Integer id;
 
     @Column(name = "first_name")
@@ -36,7 +36,8 @@ public class Admin {
     private String username;
     private String password;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "admin")
-    private List<Quiz> quizzes;
-    
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    @Column(name = "quiz_scores")
+    private List<StudentQuizScore> quizScores;
+
 }

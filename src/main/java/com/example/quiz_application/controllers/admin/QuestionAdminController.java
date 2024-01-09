@@ -20,7 +20,7 @@ import com.example.quiz_application.dto.admin.QuestionAdminDTO;
 import com.example.quiz_application.services.admin.QuestionAdminService;
 
 @RestController
-@RequestMapping("/admin/questions")
+@RequestMapping("api/v1/admin/questions")
 public class QuestionAdminController {
     @Autowired
     QuestionAdminService service;

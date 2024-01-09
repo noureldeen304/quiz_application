@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1488EA;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            margin-left: px;
+            /* Adjust the margin-left value as needed */
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Quiz App - Available Endpoints</h1>
+    <ul>
+        <!-- Questions endpoints -->
+        <li><a href="GET api/v1/admin/questions">GET api/v1/admin/questions</a></li>
+        <li><a href="GET api/v1/admin/questions/category/{category}">GET api/v1/admin/questions/category/{category}</a>
+        </li>
+        <li><a href="GET api/v1/admin/questions/difficultylevel/{difficultylevel}">GET
+                api/v1/admin/questions/difficultylevel/{difficultylevel}</a></li>
+        <li><a href="GET api/v1/admin/questions/id/{id}">GET api/v1/admin/questions/id/{id}</a></li>
+        <li><a href="POST api/v1/admin/questions/addquestion">POST api/v1/admin/questions/addquestion</a></li>
+        <li><a href="PUT api/v1/admin/questions/modify/{id}">PUT api/v1/admin/questions/modify/{id}</a></li>
+        <li><a href="DELETE api/v1/admin/questions/remove/{id}">DELETE api/v1/admin/questions/remove/{id}</a></li>
+
+        <!-- Quizzes endpoints -->
+        <li><a href="GET api/v1/admin/quizzes">GET api/v1/admin/quizzes</a></li>
+        <li><a href="GET api/v1/admin/quizzes/category/{category}">GET api/v1/admin/quizzes/category/{category}</a></li>
+        <li><a href="GET api/v1/admin/quizzes/category/{category}/version/{version}">GET
+                api/v1/admin/quizzes/category/{category}/version/{version}</a></li>
+        <li><a href="POST api/v1/admin/quizzes/create-quiz-with-random-questions">POST
+                api/v1/admin/quizzes/create-quiz-with-random-questions</a></li>
+        <li><a href="POST api/v1/admin/quizzes/create-quiz">POST api/v1/admin/quizzes/create-quiz</a></li>
+        <li><a href="PUT api/v1/admin/quizzes/update-quiz/{id}/update-version">PUT
+                api/v1/admin/quizzes/update-quiz/{id}/update-version</a></li>
+        <li><a href="PUT api/v1/admin/quizzes/update-quiz/{id}/add-random-questions">PUT
+                api/v1/admin/quizzes/update-quiz/{id}/add-random-questions</a></li>
+        <li><a href="PUT api/v1/admin/quizzes/update-quiz/{id}/remove-random-questions">PUT
+                api/v1/admin/quizzes/update-quiz/{id}/remove-random-questions</a></li>
+        <li><a href="PUT api/v1/admin/quizzes/update-quiz/{id}/add-specific-questions">PUT
+                api/v1/admin/quizzes/update-quiz/{id}/add-specific-questions</a></li>
+        <li><a href="PUT api/v1/admin/quizzes/update-quiz/{id}/remove-specific-questions">PUT
+                api/v1/admin/quizzes/update-quiz/{id}/remove-specific-questions</a></li>
+        <li><a href="PUT api/v1/admin/quizzes/update-quiz/{id}/remove-all-questions">PUT
+                api/v1/admin/quizzes/update-quiz/{id}/remove-all-questions</a></li>
+        <li><a href="DELETE api/v1/admin/quizzes/remove-quiz/{id}">DELETE api/v1/admin/quizzes/remove-quiz/{id}</a></li>
+
+        <!-- student endpoints -->
+        <li><a href="GET api/v1/student/quiz?categoryName=History&version=A">GET
+                api/v1/student/quiz?categoryName=History&version=A</a></li>
+        <li><a href="POST api/v1/student/quiz/submit-answers">POST api/v1/student/quiz/submit-answers</a></li>
+        <li><a href="GET api/v1/student/quiz/show-results">GET api/v1/student/quiz/show-results</a></li>
+    </ul>
+</body>
+
+</html>

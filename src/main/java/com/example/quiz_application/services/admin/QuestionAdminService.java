@@ -7,9 +7,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.quiz_application.Converters.Converter;
 import com.example.quiz_application.dto.admin.QuestionAdminDTO;
 import com.example.quiz_application.enums.DifficultyLevel;
+import com.example.quiz_application.mapper.Mapper;
 import com.example.quiz_application.model.Category;
 import com.example.quiz_application.model.Question;
 import com.example.quiz_application.repositories.CategoryRepository;
@@ -19,22 +19,23 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class QuestionAdminService {
-    @Autowired
-    QuestionRepository questionRepository;
 
     @Autowired
-    CategoryRepository categoryRepository;
+    private Mapper mapper;
+    @Autowired
+    private QuestionRepository questionRepository;
 
-    private final String availableDifficultyLevel = Arrays.toString(DifficultyLevel.values());
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     public List<QuestionAdminDTO> getAllQuestions() {
-        return Converter.convertToDTOs(questionRepository.findAll(), QuestionAdminDTO.class);
+        return mapper.mapList(questionRepository.findAll(), QuestionAdminDTO.class);
     }
 
     public List<QuestionAdminDTO> getQuestionsByCategory(String category) {
         Category categoryFromDB = categoryRepository.findByCategoryName(category)
                 .orElseThrow(() -> new IllegalStateException("There is no category" + " named: " + category));
-        return Converter.convertToDTOs(categoryFromDB.getQuestions(), QuestionAdminDTO.class);
+        return mapper.mapList(categoryFromDB.getQuestions(), QuestionAdminDTO.class);
     }
 
     public List<QuestionAdminDTO> getQuestionsBydifficultyLevel(String difficultyLevel) {
@@ -42,7 +43,7 @@ public class QuestionAdminService {
         List<Question> listOfQuestions = questionRepository
                 .findByDifficultyLevel(DifficultyLevel.valueOf(difficultyLevel.toUpperCase())).get();
 
-        return Converter.convertToDTOs(listOfQuestions, QuestionAdminDTO.class);
+        return mapper.mapList(listOfQuestions, QuestionAdminDTO.class);
     }
 
     public QuestionAdminDTO getQuestionById(Integer id) {
@@ -50,7 +51,7 @@ public class QuestionAdminService {
                 .orElseThrow(() -> new IllegalStateException("There is no question with id: " + id));
         Question questionFromDB = questionRepository.findById(id).get();
 
-        return Converter.convertToDTO(questionFromDB, QuestionAdminDTO.class);
+        return mapper.map(questionFromDB, QuestionAdminDTO.class);
     }
 
     @Transactional
@@ -69,7 +70,7 @@ public class QuestionAdminService {
                 categoryRepository.save(new Category(questionAdminDTO.getCategoryName()));
             }
 
-            Question questionEntity = Converter.convertToDAO(questionAdminDTO, Question.class);
+            Question questionEntity = mapper.map(questionAdminDTO, Question.class);
 
             Category categoryEntity = categoryRepository.findByCategoryName(questionAdminDTO.getCategoryName()).get();
             questionEntity.setCategory(categoryEntity);
@@ -159,7 +160,7 @@ public class QuestionAdminService {
             }
         }
 
-        return Converter.convertToDTO(questionFromDB, QuestionAdminDTO.class);
+        return mapper.map(questionFromDB, QuestionAdminDTO.class);
     }
 
     public void removeQuestion(Integer id) {
@@ -173,7 +174,7 @@ public class QuestionAdminService {
             DifficultyLevel.valueOf(insertedDifficultyLevel.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("There is no difficulty level" + " named: " + insertedDifficultyLevel
-                    + "\nAvailable values: " + availableDifficultyLevel);
+                    + "\nAvailable values: " + Arrays.toString(DifficultyLevel.values()));
 
         }
     }

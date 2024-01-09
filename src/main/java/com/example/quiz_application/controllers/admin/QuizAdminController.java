@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping(path = "admin/quizzes")
+@RequestMapping(path = "api/v1/admin/quizzes")
 public class QuizAdminController {
     @Autowired
     QuizAdminService quizService;

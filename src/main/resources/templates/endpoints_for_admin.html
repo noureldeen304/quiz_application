@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        /* Styles omitted for brevity */
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome to the Application, here are the endpoints available for you</h1>
+    <table>
+        <tr>
+            <th>Endpoint</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions</td>
+            <td>Retrieve the list of all questions</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions/id/{id}</td>
+            <td>Retrieve the list of questions by ID</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions/category/{category}</td>
+            <td>Retrieve the list of questions by category name</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions/difficultylevel/{difficultylevel}</td>
+            <td>Retrieve the list of questions by difficulty level</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions/addquestion</td>
+            <td>Add new question</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions/modify/{id}</td>
+            <td>Modify an existing question by it's ID</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/questions/remove/{id}</td>
+            <td>Remove a question by it's ID</td>
+        </tr>
+
+        <tr>
+            <td>/api/v1/admin/quizzes</td>
+            <td>Retrieve the list of all quizzes created by you</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/category/{category}</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/category/{category}/version/{version}</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/create-quiz-with-random-questions</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/create-quiz</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/update-quiz/{id}/update-version</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/update-quiz/{id}/add-random-questions</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/update-quiz/{id}/remove-random-questions</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/update-quiz/{id}/add-specific-questions</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/update-quiz/{id}/remove-specific-questions</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/update-quiz/{id}/remove-all-questions</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/quizzes/remove-quiz/{id}</td>
+            <td>Retrieve the list of all questions with admin privileges</td>
+        </tr>
+
+    </table>
+</body>
+
+</html>

@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.quiz_application.Converters.Converter;
 import com.example.quiz_application.dto.admin.QuizAdminDTO;
+import com.example.quiz_application.mapper.Mapper;
 import com.example.quiz_application.model.Category;
 import com.example.quiz_application.model.Question;
 import com.example.quiz_application.model.Quiz;
@@ -23,20 +23,25 @@ import jakarta.transaction.Transactional;
 @Service
 public class QuizAdminService {
     @Autowired
-    QuestionRepository questionRepository;
+    private Mapper mapper;
+
     @Autowired
-    QuizRepository quizRepository;
+    private QuestionRepository questionRepository;
+
     @Autowired
-    CategoryRepository categoryRepository;
+    private QuizRepository quizRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     public List<QuizAdminDTO> getAllQuizzes() {
-        return Converter.convertToDTOs(quizRepository.findAll(), QuizAdminDTO.class);
+        return mapper.mapList(quizRepository.findAll(), QuizAdminDTO.class);
     }
 
     public List<QuizAdminDTO> getQuizzesByCategoryName(String categoryName) {
         Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
                 .orElseThrow(() -> new IllegalStateException("There is no category with this name: " + categoryName));
-        return Converter.convertToDTOs(quizRepository.findByCategory(categoryEntity), QuizAdminDTO.class);
+        return mapper.mapList(quizRepository.findByCategory(categoryEntity), QuizAdminDTO.class);
     }
 
     public QuizAdminDTO getQuizzesByCategoryNameAndVersion(String categoryName, String version) {
@@ -49,7 +54,7 @@ public class QuizAdminService {
             throw new IllegalStateException(
                     "Quiz with this version (" + version + ") doesn't exist for this category (" + categoryName + ")");
         }
-        return Converter.convertToDTO(quizRepository.findByCategoryAndVersion(categoryEntity, version).get(0),
+        return mapper.map(quizRepository.findByCategoryAndVersion(categoryEntity, version).get(0),
                 QuizAdminDTO.class);
     }
 

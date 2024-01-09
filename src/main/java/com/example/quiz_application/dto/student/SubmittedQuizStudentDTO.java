@@ -1,4 +1,4 @@
-package com.example.quiz_application.dto.user;
+package com.example.quiz_application.dto.student;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class QuizUserDTO {
+public class SubmittedQuizStudentDTO {
     String categoryName;
     String version;
     Integer noOfQuestions;
-    List<QuestionUserDTO> questions;
+    List<QuestionStudentDTOAfterSubmit> questions;
 }

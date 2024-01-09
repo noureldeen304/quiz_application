@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -23,23 +24,26 @@ public class Quiz {
     @Id
     @SequenceGenerator(name = "quiz_sequence", sequenceName = "quiz_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "quiz_sequence")
-    Integer id;
+    private Integer id;
 
     @JoinColumn(name = "admin_id", referencedColumnName = "id")
     @ManyToOne
-    Admin admin;
+    private Admin admin;
 
     @Column(name = "no_of_questions")
-    Integer noOfQuestions;
+    private Integer noOfQuestions;
 
-    String version;
+    private String version;
 
     @ManyToOne
     @JoinColumn(name = "category_id", referencedColumnName = "id")
-    Category category;
+    private Category category;
 
     @ManyToMany
-    List<Question> questions;
+    private List<Question> questions;
+
+    @OneToMany(mappedBy = "quiz")
+    private List<StudentQuizScore> studentScores;
 
     public List<Integer> getQuestionsIds() {
         return questions.stream().map(question -> question.getId()).collect(Collectors.toList());

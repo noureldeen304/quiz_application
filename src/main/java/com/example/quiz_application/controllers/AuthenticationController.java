@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.quiz_application.enums.Authority;
 import com.example.quiz_application.security.CustomUserDetails;
-import com.example.quiz_application.services.AuthenticationService;
+import com.example.quiz_application.services.RegistrationService;
 
 @Controller
 public class AuthenticationController {
 
     @Autowired
-    AuthenticationService authenticationService;
+    RegistrationService registrationService;
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
@@ -30,7 +30,7 @@ public class AuthenticationController {
     public String processRegistrationData(@ModelAttribute("user") CustomUserDetails userDetails,
             @RequestParam String role) {
 
-        authenticationService.registerUser(userDetails, role);
+        registrationService.registerUser(userDetails, role);
         return "redirect:successful_registration";
 
     }
@@ -41,20 +41,12 @@ public class AuthenticationController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm(Model model) {
-        model.addAttribute("user", new CustomUserDetails());
+    public String showLoginForm() {
         return "login";
-    }
-
-    @PostMapping("/perform_login")
-    public void processLoginData(@ModelAttribute("user") CustomUserDetails userDetails) {
-        authenticationService.authenticateUser(userDetails.getUsername(),
-                userDetails.getPassword());
     }
 
     @GetMapping("/successful_login")
     public String showAvailableEndpointsBasedOnAuthority() {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getAuthorities().contains(Authority.ADMIN)) {
             return "redirect:admin_endpoints";

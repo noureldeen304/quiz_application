@@ -1,7 +1,6 @@
 package com.example.quiz_application.model;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,10 +15,12 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "category_id", "version" }))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "category_id", "version", "admin_id" }))
+@ToString
 public class Quiz {
     @Id
     @SequenceGenerator(name = "quiz_sequence", sequenceName = "quiz_sequence", allocationSize = 1)
@@ -43,9 +44,7 @@ public class Quiz {
     private List<Question> questions;
 
     @OneToMany(mappedBy = "quiz")
-    private List<StudentQuizScore> studentScores;
+    private List<QuizScore> studentScores;
 
-    public List<Integer> getQuestionsIds() {
-        return questions.stream().map(question -> question.getId()).collect(Collectors.toList());
-    }
+    
 }

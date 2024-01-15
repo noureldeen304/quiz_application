@@ -2,7 +2,9 @@ package com.example.quiz_application.controllers.admin;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.quiz_application.dto.admin.ModelAnswerDTO;
 import com.example.quiz_application.dto.admin.QuizAdminDTO;
+import com.example.quiz_application.dto.admin.QuizScoreAdminDTO;
 import com.example.quiz_application.services.admin.QuizAdminService;
 
 import java.util.List;
@@ -25,87 +27,110 @@ public class QuizAdminController {
     QuizAdminService quizService;
 
     @GetMapping
-    public List<QuizAdminDTO> getAllQuizzes() {
-        return quizService.getAllQuizzes();
+    public ResponseEntity<List<QuizAdminDTO>> getAllOfQuizzes() {
+        return ResponseEntity.ok().body(quizService.getAllOfQuizzes());
+    }
+    
+    @GetMapping("/my-quizzes")
+    public ResponseEntity<List<QuizAdminDTO>> getAllOfAdminQuizzes() {
+        return ResponseEntity.ok().body(quizService.getAllOfAdminQuizzes());
+    }
+
+    @GetMapping("/id/{id}")
+    public ResponseEntity<QuizAdminDTO> getQuizById(@PathVariable Integer id) {
+        return ResponseEntity.ok().body(quizService.getQuizById(id));
     }
 
     @GetMapping("/category/{category}")
-    public List<QuizAdminDTO> getQuizzesByCategoryName(@PathVariable String category) {
-        return quizService.getQuizzesByCategoryName(category);
+    public ResponseEntity<List<QuizAdminDTO>> getQuizzesByCategoryName(@PathVariable String category) {
+        return ResponseEntity.ok().body(quizService.getQuizzesByCategoryName(category));
     }
 
     @GetMapping("category/{category}/version/{version}")
-    public QuizAdminDTO getQuizzesByCategoryNameAndVersion(@PathVariable String category,
+    public ResponseEntity<QuizAdminDTO> getQuizzesByCategoryNameAndVersion(@PathVariable String category,
             @PathVariable String version) {
-        return quizService.getQuizzesByCategoryNameAndVersion(category, version);
+        return ResponseEntity.ok().body(quizService.getQuizzesByCategoryNameAndVersion(category, version));
+    }
+
+    @GetMapping("/id/{id}/model-answers")
+    public ResponseEntity<List<ModelAnswerDTO>> getQuizModelAnswers(@PathVariable Integer id) {
+        List<ModelAnswerDTO> answerSubmissionDTOs = quizService.getQuizModelAnswers(id);
+        return ResponseEntity.ok().body(answerSubmissionDTOs);
+    }
+
+    @GetMapping("/id/{id}/students-scores")
+    public ResponseEntity<List<QuizScoreAdminDTO>> getStudentScoresInQuiz(@PathVariable Integer id) {
+        List<QuizScoreAdminDTO> quizScoreAdminDTOs = quizService.getStudentScoresInQuiz(id);
+
+        return ResponseEntity.ok().body(quizScoreAdminDTOs);
     }
 
     @PostMapping(value = "/create-quiz-with-random-questions")
-    public ResponseEntity<String> createQuizWithRandomQuestions(@RequestParam String categoryName,
+    public ResponseEntity<QuizAdminDTO> createQuizWithRandomQuestions(@RequestParam String categoryName,
             @RequestParam Integer noOfQuestions,
             @RequestParam String version) {
-        quizService.createQuizWithRandomQuestions(categoryName, noOfQuestions, version);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Quiz created successfully");
+        QuizAdminDTO quiz = quizService.createQuizWithRandomQuestions(categoryName, noOfQuestions, version);
+        return ResponseEntity.status(HttpStatus.CREATED).body(quiz);
     }
 
-    @PostMapping(value = "/create-quiz")
-    public ResponseEntity<String> createQuizWithSpecificQuestionsIds(@RequestParam String categoryName,
+    @PostMapping(value = "/create-quiz-with-selected-questions")
+    public ResponseEntity<QuizAdminDTO> createQuizWithSelectedQuestionsIds(@RequestParam String categoryName,
             @RequestParam String version,
-            String ids) {
-        quizService.createQuizWithSpecificQuestionsIds(categoryName, version, ids);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Quiz created successfully");
+            @RequestParam String ids) {
+        QuizAdminDTO quizAdminDTO = quizService.createQuizWithSelectedQuestionsIds(categoryName, version, ids);
+        return ResponseEntity.status(HttpStatus.CREATED).body(quizAdminDTO);
     }
 
     @PutMapping("/update-quiz/{id}/update-version")
-    public ResponseEntity<String> updateVersionOfQuiz(@PathVariable Integer id,
-            @RequestParam(required = false) String version) {
+    public ResponseEntity<QuizAdminDTO> updateVersionOfQuiz(@PathVariable Integer id,
+            @RequestParam String version) {
 
-        quizService.updateVersionOfQuiz(id, version);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+        QuizAdminDTO quizAdminDTO = quizService.updateVersionOfQuiz(id, version);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
     }
 
     @PutMapping("/update-quiz/{id}/add-random-questions")
-    public ResponseEntity<String> addSpecificNumberOfRandomQuestionsToQuiz(@PathVariable Integer id,
-            @RequestParam(required = false) Integer noOfQuestions) {
+    public ResponseEntity<QuizAdminDTO> addNumberOfRandomQuestions(@PathVariable Integer id,
+            @RequestParam Integer noOfQuestions) {
 
-        quizService.addSpecificNumberOfRandomQuestionsToQuiz(id, noOfQuestions);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+        QuizAdminDTO quizAdminDTO = quizService.addNumberOfRandomQuestionsToQuiz(id, noOfQuestions);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
+    }
+
+    @PutMapping("/update-quiz/{id}/add-selected-questions")
+    public ResponseEntity<QuizAdminDTO> addNumberOfSelectedQuestionsToQuiz(@PathVariable Integer id,
+            @RequestParam String ids) {
+
+        QuizAdminDTO quizAdminDTO = quizService.addNumberOfSelectedQuestionsToQuiz(id, ids);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
     }
 
     @PutMapping("/update-quiz/{id}/remove-random-questions")
-    public ResponseEntity<String> removeSpecificNumberOfRandomQuestionsFromQuiz(@PathVariable Integer id,
-            @RequestParam(required = false) Integer noOfQuestions) {
+    public ResponseEntity<QuizAdminDTO> removeNumberOfRandomQuestionsFromQuiz(@PathVariable Integer id,
+            @RequestParam Integer noOfQuestions) {
 
-        quizService.removeSpecificNumberOfRandomQuestionsFromQuiz(id, noOfQuestions);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+        QuizAdminDTO quizAdminDTO = quizService.removeNumberOfRandomQuestionsFromQuiz(id, noOfQuestions);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
     }
 
-    @PutMapping("/update-quiz/{id}/add-specific-questions")
-    public ResponseEntity<String> addSpecificNumberOfSelectedQuestionsToQuiz(@PathVariable Integer id,
-            @RequestParam(required = false) String ids) {
+    @PutMapping("/update-quiz/{id}/remove-selected-questions")
+    public ResponseEntity<QuizAdminDTO> removeSelectedNumberOfSelectedQuestionsFromQuiz(@PathVariable Integer id,
+            @RequestParam String ids) {
 
-        quizService.addSpecificNumberOfSelectedQuestionsToQuiz(id, ids);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
-    }
-
-    @PutMapping("/update-quiz/{id}/remove-specific-questions")
-    public ResponseEntity<String> removeSpecificNumberOfSelectedQuestionsFromQuiz(@PathVariable Integer id,
-            @RequestParam(required = false) String ids) {
-
-        quizService.removeSpecificNumberOfSelectedQuestionsFromQuiz(id, ids);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+        QuizAdminDTO quizAdminDTO = quizService.removeSelectedQuestionsFromQuiz(id, ids);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
     }
 
     @PutMapping("/update-quiz/{id}/remove-all-questions")
-    public ResponseEntity<String> removeAllQuestionsFromQuizById(@PathVariable Integer id) {
+    public ResponseEntity<QuizAdminDTO> removeAllQuestionsFromQuizById(@PathVariable Integer id) {
 
-        quizService.removeAllQuestionsFromQuizById(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz updated successfully");
+        QuizAdminDTO quizAdminDTO = quizService.removeAllQuestionsFromQuizById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
     }
 
     @DeleteMapping("/remove-quiz/{id}")
-    public ResponseEntity<String> removeQuizById(@PathVariable Integer id) {
-        quizService.removeQuizById(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Quiz deleted successfully");
+    public ResponseEntity<QuizAdminDTO> removeQuizById(@PathVariable Integer id) {
+        QuizAdminDTO quizAdminDTO = quizService.removeQuizById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(quizAdminDTO);
     }
 }

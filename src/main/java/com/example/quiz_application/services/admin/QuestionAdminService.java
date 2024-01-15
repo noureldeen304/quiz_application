@@ -1,12 +1,20 @@
 package com.example.quiz_application.services.admin;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.quiz_application.config.exceptions.AnswerNotFoundInOptionsException;
+import com.example.quiz_application.config.exceptions.CategoryNotFoundException;
+import com.example.quiz_application.config.exceptions.DifficultyLevelNotFoundException;
+import com.example.quiz_application.config.exceptions.OptionIsRightAnswerException;
+import com.example.quiz_application.config.exceptions.QuestionAlreadyExistsException;
+import com.example.quiz_application.config.exceptions.QuestionNotFoundException;
 import com.example.quiz_application.dto.admin.QuestionAdminDTO;
 import com.example.quiz_application.enums.DifficultyLevel;
 import com.example.quiz_application.mapper.Mapper;
@@ -22,6 +30,7 @@ public class QuestionAdminService {
 
     @Autowired
     private Mapper mapper;
+
     @Autowired
     private QuestionRepository questionRepository;
 
@@ -34,7 +43,7 @@ public class QuestionAdminService {
 
     public List<QuestionAdminDTO> getQuestionsByCategory(String category) {
         Category categoryFromDB = categoryRepository.findByCategoryName(category)
-                .orElseThrow(() -> new IllegalStateException("There is no category" + " named: " + category));
+                .orElseThrow(() -> new CategoryNotFoundException(category));
         return mapper.mapList(categoryFromDB.getQuestions(), QuestionAdminDTO.class);
     }
 
@@ -48,7 +57,7 @@ public class QuestionAdminService {
 
     public QuestionAdminDTO getQuestionById(Integer id) {
         questionRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("There is no question with id: " + id));
+                .orElseThrow(() -> new QuestionNotFoundException(id));
         Question questionFromDB = questionRepository.findById(id).get();
 
         return mapper.map(questionFromDB, QuestionAdminDTO.class);
@@ -58,13 +67,15 @@ public class QuestionAdminService {
     public void addNewQuestion(QuestionAdminDTO questionAdminDTO) {
         Optional<Question> optional = questionRepository.findByQuestionTitle(questionAdminDTO.getQuestionTitle());
         if (optional.isPresent())
-            throw new IllegalStateException("This question already exits.");
+            throw new QuestionAlreadyExistsException();
 
         else {
 
             ensureDifficultyLevelIsValid(questionAdminDTO.getDifficultyLevel());
-            ensureAnswerIsChosenFromProvidedInsertedOptions(questionAdminDTO.getOptions(),
-                    questionAdminDTO.getAnswer());
+
+            if (!questionAdminDTO.getOptions().contains(questionAdminDTO.getAnswer())) {
+                throw new AnswerNotFoundInOptionsException();
+            }
 
             if (!categoryRepository.findByCategoryName(questionAdminDTO.getCategoryName()).isPresent()) {
                 categoryRepository.save(new Category(questionAdminDTO.getCategoryName()));
@@ -74,6 +85,7 @@ public class QuestionAdminService {
 
             Category categoryEntity = categoryRepository.findByCategoryName(questionAdminDTO.getCategoryName()).get();
             questionEntity.setCategory(categoryEntity);
+
             questionRepository.save(questionEntity);
         }
     }
@@ -89,169 +101,128 @@ public class QuestionAdminService {
             String option4,
             String answer) {
 
-        QuestionAdminDTO questionAdminDTO = QuestionAdminDTO.builder()
-                .id(id)
-                .categoryName(categoryName)
-                .difficultyLevel(difficultyLevel)
-                .questionTitle(questionTitle)
-                .option1(option1)
-                .option2(option2)
-                .option3(option3)
-                .option4(option4)
-                .answer(answer).build();
-
-        Question questionFromDB = questionRepository.findById(questionAdminDTO.getId())
+        Question questionFromDB = questionRepository.findById(id)
                 .orElseThrow(
-                        () -> new IllegalStateException("There is no question with id: " + questionAdminDTO.getId()));
+                        () -> new QuestionNotFoundException(id));
 
         // ================== QuestionTitle ============================
-        if (!isNullOrEmpty(questionAdminDTO.getQuestionTitle())) {
+        if (!isNullOrEmpty(questionTitle)) {
 
-            ensureFieldHasDifferentValueInDB("QuestionTitle", questionAdminDTO.getQuestionTitle(),
-                    questionFromDB.getQuestionTitle());
-            if (questionRepository.findByQuestionTitle(questionAdminDTO.getQuestionTitle()).isPresent())
-                throw new IllegalStateException("This question title already exists for another question.");
+            if (questionRepository.findByQuestionTitle(questionTitle).isPresent())
+                throw new QuestionAlreadyExistsException();
 
-            questionFromDB.setQuestionTitle(questionAdminDTO.getQuestionTitle());
+            questionFromDB.setQuestionTitle(questionTitle);
         }
 
         // ================== CategoryName ============================
-        if (!isNullOrEmpty(questionAdminDTO.getCategoryName())) {
-
-            ensureFieldHasDifferentValueInDB("CategoryName", questionAdminDTO.getCategoryName(),
-                    questionFromDB.getCategory().getCategoryName());
-            Category categoryEntity = categoryRepository.findByCategoryName(questionAdminDTO.getCategoryName())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "There is no category" + " named: " + questionAdminDTO.getCategoryName()));
+        if (!isNullOrEmpty(categoryName)) {
+            Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
+                    .orElseThrow(() -> new CategoryNotFoundException(categoryName));
             questionFromDB.setCategory(categoryEntity);
         }
 
         // ================== DifficultyLevel ============================
-        if (!isNullOrEmpty(questionAdminDTO.getDifficultyLevel())) {
-
-            ensureDifficultyLevelIsValid(questionAdminDTO.getDifficultyLevel());
-            ensureFieldHasDifferentValueInDB("DifficultyLevel", questionAdminDTO.getDifficultyLevel(),
-                    questionFromDB.getDifficultyLevel().toString());
+        if (!isNullOrEmpty(difficultyLevel)) {
+            ensureDifficultyLevelIsValid(difficultyLevel);
             questionFromDB
-                    .setDifficultyLevel(DifficultyLevel.valueOf(questionAdminDTO.getDifficultyLevel().toUpperCase()));
+                    .setDifficultyLevel(DifficultyLevel.valueOf(difficultyLevel.toUpperCase()));
         }
 
-        // ================== Question Options & Answer ============================
-        if (questionAdminDTO.getOption1() != null && questionAdminDTO.getOption2() != null
-                && questionAdminDTO.getOption3() != null && questionAdminDTO.getOption4() != null
-                && questionAdminDTO.getAnswer() != null) {
-            if (!questionAdminDTO.getOptions().contains(questionAdminDTO.getAnswer())) {
-                throw new IllegalStateException(
-                        "The answer must be chosen from the available options for the question.");
+        // ================== Options & Answer ============================
+        if (!isNullOrEmpty(option1) && !isNullOrEmpty(option2)
+                && !!isNullOrEmpty(option3) && !isNullOrEmpty(option4)
+                && !isNullOrEmpty(answer)) {
+
+            if (!Arrays.asList(option1, option2, option3, option4).contains(answer)) {
+                throw new AnswerNotFoundInOptionsException();
             }
-            questionFromDB.setOption1(questionAdminDTO.getOption1());
-            questionFromDB.setOption2(questionAdminDTO.getOption2());
-            questionFromDB.setOption3(questionAdminDTO.getOption3());
-            questionFromDB.setOption4(questionAdminDTO.getOption4());
-            questionFromDB.setAnswer(questionAdminDTO.getAnswer());
+            questionFromDB.setOption1(option1);
+            questionFromDB.setOption2(option2);
+            questionFromDB.setOption3(option3);
+            questionFromDB.setOption4(option4);
+            questionFromDB.setAnswer(answer);
         } else {
 
-            validateOptionValues(questionAdminDTO, questionFromDB);
+            Map<String, String> exptectedListOfOptions = new HashMap<>(4);
 
-            if (!isNullOrEmpty(questionAdminDTO.getAnswer())) {
-                ensureFieldHasDifferentValueInDB("answer", questionAdminDTO.getAnswer(), questionFromDB.getAnswer());
-                ensureAnswerIsChosenFromProvidedOptionsInDB(questionFromDB.getOptions(), questionAdminDTO.getAnswer());
-                questionFromDB.setAnswer(questionAdminDTO.getAnswer());
+            if (!isNullOrEmpty(option1)) {
+                if (questionFromDB.getOption1().equals(questionFromDB.getAnswer()) && isNullOrEmpty(answer)) {
+                    throw new OptionIsRightAnswerException(questionFromDB.getOption1(), 1);
+                }
+                if (!isNullOrEmpty(answer) && !Objects.equals(option1, answer)) {
+                    throw new AnswerNotFoundInOptionsException();
+                }
+                exptectedListOfOptions.put("option1", option1);
+            } else {
+                exptectedListOfOptions.put("option1", questionFromDB.getOption1());
             }
+
+            if (!isNullOrEmpty(option2)) {
+                if (questionFromDB.getOption2().equals(questionFromDB.getAnswer()) && isNullOrEmpty(answer)) {
+                    throw new OptionIsRightAnswerException(questionFromDB.getOption2(), 2);
+                }
+                if (!isNullOrEmpty(answer) && !Objects.equals(option2, answer)) {
+                    throw new AnswerNotFoundInOptionsException();
+                }
+                exptectedListOfOptions.put("option2", option2);
+            } else {
+                exptectedListOfOptions.put("option2", questionFromDB.getOption2());
+            }
+
+            if (!isNullOrEmpty(option3)) {
+                if (questionFromDB.getOption3().equals(questionFromDB.getAnswer()) && isNullOrEmpty(answer)) {
+                    throw new OptionIsRightAnswerException(questionFromDB.getOption3(), 3);
+                }
+                if (!isNullOrEmpty(answer) && !Objects.equals(option3, answer)) {
+                    throw new AnswerNotFoundInOptionsException();
+                }
+                exptectedListOfOptions.put("option3", option3);
+            } else {
+                exptectedListOfOptions.put("option3", questionFromDB.getOption3());
+            }
+
+            if (!isNullOrEmpty(option4)) {
+                if (questionFromDB.getOption4().equals(questionFromDB.getAnswer()) && isNullOrEmpty(answer)) {
+                    throw new OptionIsRightAnswerException(questionFromDB.getOption4(), 4);
+                }
+                if (!isNullOrEmpty(answer) && !Objects.equals(option4, answer)) {
+                    throw new AnswerNotFoundInOptionsException();
+                }
+                exptectedListOfOptions.put("option4", option4);
+            } else {
+                exptectedListOfOptions.put("option4", questionFromDB.getOption4());
+            }
+
+            if (!isNullOrEmpty(answer)) {
+                if (!exptectedListOfOptions.values().stream().toList().contains(answer)) {
+                    throw new AnswerNotFoundInOptionsException();
+                }
+                questionFromDB.setAnswer(answer);
+            }
+
+            questionFromDB.setOption1(exptectedListOfOptions.get("option1"));
+            questionFromDB.setOption2(exptectedListOfOptions.get("option2"));
+            questionFromDB.setOption3(exptectedListOfOptions.get("option3"));
+            questionFromDB.setOption4(exptectedListOfOptions.get("option4"));
         }
 
         return mapper.map(questionFromDB, QuestionAdminDTO.class);
     }
 
-    public void removeQuestion(Integer id) {
-        questionRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("There is no question with id: " + id));
+    public QuestionAdminDTO removeQuestion(Integer id) {
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new QuestionNotFoundException(id));
         questionRepository.deleteById(id);
+        return mapper.map(question, QuestionAdminDTO.class);
     }
 
-    public void ensureDifficultyLevelIsValid(String insertedDifficultyLevel) {
+    // ======================================================
+    private void ensureDifficultyLevelIsValid(String insertedDifficultyLevel) {
         try {
             DifficultyLevel.valueOf(insertedDifficultyLevel.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("There is no difficulty level" + " named: " + insertedDifficultyLevel
-                    + "\nAvailable values: " + Arrays.toString(DifficultyLevel.values()));
+            throw new DifficultyLevelNotFoundException(insertedDifficultyLevel);
 
-        }
-    }
-
-    private void validateOptionValues(QuestionAdminDTO questionAdminDTO,
-            Question questionInDB) {
-        int index = 0;
-        String valueOfTheOptionInDB;
-        List<String> valuesOfTheOtherInsertedOptionValues;
-        List<String> valuesOfTheOtherOptionsInDB;
-        for (String insertedOptionValue : questionAdminDTO.getOptions()) {
-            insertedOptionValue = questionAdminDTO.getOptions().get(index);
-            valueOfTheOptionInDB = questionInDB.getOptions().get(index);
-            valuesOfTheOtherInsertedOptionValues = questionAdminDTO.getOptionsWithoutOption(insertedOptionValue);
-            valuesOfTheOtherOptionsInDB = questionInDB.getOptions();
-            if (!isNullOrEmpty(insertedOptionValue)) {
-                ensureOptionIsNotTheAnswer("option" + (index + 1), valueOfTheOptionInDB, questionInDB.getAnswer());
-                ensureFieldHasDifferentValueInDB("option" + (index + 1), insertedOptionValue, valueOfTheOptionInDB);
-                checkForDuplicateOptionValue(insertedOptionValue, valuesOfTheOtherInsertedOptionValues);
-                ensureOptionValueIsUniqueInDB("option" + (index + 1), insertedOptionValue, valuesOfTheOtherOptionsInDB);
-                questionInDB.setValueForOption(index + 1, insertedOptionValue);
-            }
-            index++;
-        }
-    }
-
-    private void ensureAnswerIsChosenFromProvidedInsertedOptions(List<String> valuesOfOptionsUserInputs,
-            String answer) {
-        if (!valuesOfOptionsUserInputs.contains(answer)) {
-            throw new IllegalStateException("The answer must be chosen from the available options you provided: "
-                    + valuesOfOptionsUserInputs.toString());
-        }
-    }
-
-    private void ensureAnswerIsChosenFromProvidedOptionsInDB(List<String> valuesOfOptionsInDB, String answer) {
-        if (!valuesOfOptionsInDB.contains(answer)) {
-            throw new IllegalStateException("The answer must be chosen from the available options in the database: "
-                    + valuesOfOptionsInDB.toString());
-        }
-    }
-
-    private void ensureOptionIsNotTheAnswer(String optionName, String optionValue, String answerValue) {
-        if (Objects.equals(optionValue, answerValue)) {
-            throw new IllegalStateException(
-                    optionName
-                            + "\" you're trying to modify is the right answer; you cannot modify it until you change the right answer.");
-        }
-    }
-
-    private void ensureFieldHasDifferentValueInDB(String fieldName, String insertedValue,
-            String existingValueInDB) {
-
-        if (Objects.equals(insertedValue, existingValueInDB)) {
-            throw new IllegalStateException("The provided value: \"" + insertedValue
-                    + "\" is already assigned to \"" + fieldName + "\" in the database.");
-        }
-    }
-
-    private void checkForDuplicateOptionValue(String insertedOptionValue,
-            List<String> valuesOfTheOtherInsertedOptionValues) {
-
-        if (valuesOfTheOtherInsertedOptionValues.contains(insertedOptionValue)) {
-            throw new IllegalStateException(
-                    "Duplicate option value (" + insertedOptionValue
-                            + ") found; each option must have a unique value.");
-        }
-    }
-
-    private void ensureOptionValueIsUniqueInDB(String optionName, String insertedOptionValue,
-            List<String> valuesOfTheOtherOptionsInDB) {
-
-        if (valuesOfTheOtherOptionsInDB.contains(insertedOptionValue)) {
-            Integer indexOfTheOptionHasTheSameValue = valuesOfTheOtherOptionsInDB.indexOf(insertedOptionValue);
-            throw new IllegalStateException("The provided value \"" + insertedOptionValue
-                    + "\" you are trying to assign to \"" + optionName + "\""
-                    + "\" is already assigned to \"option" + (indexOfTheOptionHasTheSameValue + 1)
-                    + "\" in the database.\nEach option must have a unique value.");
         }
     }
 

@@ -40,83 +40,70 @@
             <th>Description</th>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions</td>
-            <td>Retrieve the list of all questions</td>
+            <td>GET /api/v1/admin/quizzes</td>
+            <td>Retrieves a list of all quizzes.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/id/{id}</td>
-            <td>Retrieve the list of questions by ID</td>
+            <td>GET /api/v1/admin/quizzes/my-quizzes</td>
+            <td>Retrieves a list of quizzes created by the admin.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/category/{category}</td>
-            <td>Retrieve the list of questions by category name</td>
+            <td>GET /api/v1/admin/quizzes/id/{id}</td>
+            <td>Retrieves a specific quiz by its ID.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/difficultylevel/{difficultylevel}</td>
-            <td>Retrieve the list of questions by difficulty level</td>
+            <td>GET /api/v1/admin/quizzes/category/{category}</td>
+            <td>Retrieves quizzes based on a specified category.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/addquestion</td>
-            <td>Add new question</td>
+            <td>GET /api/v1/admin/quizzes/category/{category}/version/{version}</td>
+            <td>Retrieves quizzes based on a specified category and version.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/modify/{id}</td>
-            <td>Modify an existing question by it's ID</td>
+            <td>GET /api/v1/admin/quizzes/id/{id}/model-answers</td>
+            <td>Retrieves model answers for a specific quiz.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/remove/{id}</td>
-            <td>Remove a question by it's ID</td>
+            <td>GET /api/v1/admin/quizzes/id/{id}/students-scores</td>
+            <td>Retrieves students' scores for a specific quiz.</td>
         </tr>
 
         <tr>
-            <td>/api/v1/admin/quizzes</td>
-            <td>Retrieve the list of all quizzes created by you</td>
+            <td>POST /api/v1/admin/quizzes/create-quiz-with-random-questions</td>
+            <td>Creates a new quiz with a specified category, number of questions, and version.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/category/{category}</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>POST /api/v1/admin/quizzes/create-quiz-with-selected-questions</td>
+            <td>Creates a new quiz with a specified category, version, and selected question IDs.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/category/{category}/version/{version}</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>PUT /api/v1/admin/quizzes/update-quiz/{id}/update-version</td>
+            <td>Updates the version of a specific quiz.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/create-quiz-with-random-questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>PUT /api/v1/admin/quizzes/update-quiz/{id}/add-random-questions</td>
+            <td>Adds a specified number of random questions to a specific quiz.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/create-quiz</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>PUT /api/v1/admin/quizzes/update-quiz/{id}/add-selected-questions</td>
+            <td>Adds selected questions to a specific quiz based on question IDs.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/update-quiz/{id}/update-version</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>PUT /api/v1/admin/quizzes/update-quiz/{id}/remove-random-questions</td>
+            <td>Removes a specified number of random questions from a specific quiz.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/update-quiz/{id}/add-random-questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>PUT /api/v1/admin/quizzes/update-quiz/{id}/remove-selected-questions</td>
+            <td>Removes selected questions from a specific quiz based on question IDs.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/update-quiz/{id}/remove-random-questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>PUT /api/v1/admin/quizzes/update-quiz/{id}/remove-all-questions</td>
+            <td>Removes all questions from a specific quiz.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/quizzes/update-quiz/{id}/add-specific-questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>DELETE /api/v1/admin/quizzes/remove-quiz/{id}</td>
+            <td>Removes a specific quiz by its ID.</td>
         </tr>
-        <tr>
-            <td>/api/v1/admin/quizzes/update-quiz/{id}/remove-specific-questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
-        </tr>
-        <tr>
-            <td>/api/v1/admin/quizzes/update-quiz/{id}/remove-all-questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
-        </tr>
-        <tr>
-            <td>/api/v1/admin/quizzes/remove-quiz/{id}</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
-        </tr>
-
     </table>
 </body>
 

@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class QuizStudentDTO {
-    String categoryName;
-    String version;
-    Integer noOfQuestions;
-    List<QuestionStudentDTO> questions;
+    private Integer id;
+    private String author;
+    private String categoryName;
+    private String version;
+    private Integer noOfQuestions;
+    private List<QuestionStudentDTO> questions;
 }

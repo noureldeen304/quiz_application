@@ -43,29 +43,14 @@ public class Question {
     String option4;
     String answer;
 
-    public List<String> getOptions() {
-        return Arrays.asList(option1, option2, option3, option4);
-    }
-
-    public List<String> getOptionsWithoutOption(String option) {
-        List<String> list = new ArrayList<>(Arrays.asList(option1, option2, option3, option4));
-        list.remove(option);
-        return list;
-    }
-
-    public void setValueForOption(Integer optionNumber, String option) {
-        switch (optionNumber) {
-            case 1:
-                setOption1(option);
-                break;
-            case 2:
-                setOption2(option);
-                break;
-            case 3:
-                setOption3(option);
-                break;
-            default:
-                setOption4(option);
+    public Integer getAnswerNumber() {
+        if (answer.equals(option1)) {
+            return 1;
+        } else if (answer.equals(option2)) {
+            return 2;
+        } else if (answer.equals(option3)) {
+            return 3;
         }
+        return 4;
     }
 }

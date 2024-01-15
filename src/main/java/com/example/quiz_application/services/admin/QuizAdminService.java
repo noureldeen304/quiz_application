@@ -2,291 +2,442 @@ package com.example.quiz_application.services.admin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
+import com.example.quiz_application.config.exceptions.CategoryHasInsufficientQuestionsException;
+import com.example.quiz_application.config.exceptions.CategoryNotFoundException;
+import com.example.quiz_application.config.exceptions.IdsNotSelectedException;
+import com.example.quiz_application.config.exceptions.InvalidIdsException;
+import com.example.quiz_application.config.exceptions.QuestionAlreadyExistsException;
+import com.example.quiz_application.config.exceptions.QuestionNotFoundException;
+import com.example.quiz_application.config.exceptions.QuizNotFoundException;
+import com.example.quiz_application.config.exceptions.QuizNotFoundInYourQuizzesException;
+import com.example.quiz_application.config.exceptions.QuizNotTakenByStudentException;
+import com.example.quiz_application.config.exceptions.UserNotFoundException;
+import com.example.quiz_application.config.exceptions.QuizAlreadyExistsException;
+import com.example.quiz_application.dto.admin.ModelAnswerDTO;
 import com.example.quiz_application.dto.admin.QuizAdminDTO;
+import com.example.quiz_application.dto.admin.QuizScoreAdminDTO;
 import com.example.quiz_application.mapper.Mapper;
+import com.example.quiz_application.model.Admin;
 import com.example.quiz_application.model.Category;
 import com.example.quiz_application.model.Question;
 import com.example.quiz_application.model.Quiz;
+import com.example.quiz_application.model.QuizScore;
+import com.example.quiz_application.repositories.AdminRepository;
 import com.example.quiz_application.repositories.CategoryRepository;
 import com.example.quiz_application.repositories.QuestionRepository;
 import com.example.quiz_application.repositories.QuizRepository;
+import com.example.quiz_application.repositories.QuizScoreRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.NonNull;
 
 @Service
 public class QuizAdminService {
-    @Autowired
-    private Mapper mapper;
 
-    @Autowired
-    private QuestionRepository questionRepository;
+        @Autowired
+        private Mapper mapper;
 
-    @Autowired
-    private QuizRepository quizRepository;
+        @Autowired
+        private QuestionRepository questionRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+        @Autowired
+        private QuizRepository quizRepository;
 
-    public List<QuizAdminDTO> getAllQuizzes() {
-        return mapper.mapList(quizRepository.findAll(), QuizAdminDTO.class);
-    }
+        @Autowired
+        private CategoryRepository categoryRepository;
 
-    public List<QuizAdminDTO> getQuizzesByCategoryName(String categoryName) {
-        Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
-                .orElseThrow(() -> new IllegalStateException("There is no category with this name: " + categoryName));
-        return mapper.mapList(quizRepository.findByCategory(categoryEntity), QuizAdminDTO.class);
-    }
+        @Autowired
+        private AdminRepository adminRepository;
 
-    public QuizAdminDTO getQuizzesByCategoryNameAndVersion(String categoryName, String version) {
-        Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
-                .orElseThrow(() -> new IllegalStateException("version"));
+        @Autowired
+        private QuizScoreRepository quizScoreRepository;
 
-        List<String> verstionsOfCategoryEntity = quizRepository.findByCategory(categoryEntity).stream()
-                .map(Quiz::getVersion).collect(Collectors.toList());
-        if (!verstionsOfCategoryEntity.contains(version)) {
-            throw new IllegalStateException(
-                    "Quiz with this version (" + version + ") doesn't exist for this category (" + categoryName + ")");
-        }
-        return mapper.map(quizRepository.findByCategoryAndVersion(categoryEntity, version).get(0),
-                QuizAdminDTO.class);
-    }
+        private final String ROLE = "Admin";
 
-    public void createQuizWithRandomQuestions(String categoryName, Integer noOfQuestions, String version) {
-        Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
-                .orElseThrow(
-                        () -> new IllegalStateException("There is no category with this name: " + categoryName));
+        public List<QuizAdminDTO> getAllOfQuizzes() {
 
-        quizRepository.findAll().forEach(quiz -> {
-            if (Objects.equals(quiz.getVersion(), version)
-                    && Objects.equals(quiz.getCategory().getCategoryName(), categoryName)) {
-                throw new IllegalStateException("Quiz creation failed: A quiz with the category '" + categoryName +
-                        "' and version '" + version + "' already exists. \nPlease use a different version.");
-            }
-        });
-
-        if (noOfQuestions > categoryEntity.getQuestions().size()) {
-            throw new IllegalStateException("Unable to create quiz: Insufficient questions available for category '"
-                    + categoryName + "'. \nRequested: " + noOfQuestions + ", Available: "
-                    + categoryEntity.getQuestions().size()
-                    + ". \nPlease choose a lower number of questions or consider adding more questions to the category.");
+                return mapper.mapList(quizRepository.findAll(), QuizAdminDTO.class)
+                                .stream()
+                                .sorted(Comparator.comparing(QuizAdminDTO::getId))
+                                .collect(Collectors.toList());
         }
 
-        List<Question> listOfRandomQuestions = questionRepository
-                .getRandomQuestionsOfSpecificCategory(categoryEntity.getId(), noOfQuestions).get();
+        public List<QuizAdminDTO> getAllOfAdminQuizzes() {
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+                return mapper.mapList(quizRepository.findByAdmin(admin).get(), QuizAdminDTO.class)
+                                .stream()
+                                .sorted(Comparator.comparing(QuizAdminDTO::getId))
+                                .collect(Collectors.toList());
 
-        Quiz quiz = new Quiz();
-        quiz.setCategory(categoryEntity);
-        quiz.setQuestions(listOfRandomQuestions);
-        quiz.setVersion(version);
-        quiz.setNoOfQuestions(noOfQuestions);
-        quizRepository.save(quiz);
-
-    }
-
-    public void createQuizWithSpecificQuestionsIds(String categoryName, String version,
-            String stringOfIds) {
-
-        Category categoryEntity = categoryRepository.findByCategoryName(categoryName)
-                .orElseThrow(
-                        () -> new IllegalStateException("There is no category with this name: " + categoryName));
-
-        quizRepository.findAll().forEach(quiz -> {
-            if (Objects.equals(quiz.getVersion(), version)
-                    && Objects.equals(quiz.getCategory().getCategoryName(), categoryName)) {
-                throw new IllegalStateException("Quiz creation failed: A quiz with the category '" + categoryName +
-                        "' and version '" + version + "' already exists. \nPlease use a different version.");
-            }
-        });
-
-        if (stringOfIds == null) {
-            throw new IllegalStateException(
-                    "Quiz creation failed: provide IDs for questions you want to add to this quiz");
         }
-        List<Integer> listOfInsertedIds = parseStringOfIdsToListOfIds(stringOfIds);
 
-        List<Question> listOfQuestionsToBeInserted = new ArrayList<>();
-
-        listOfInsertedIds.forEach(insertedId -> {
-            Question questionEntity = questionRepository.findById(insertedId)
-                    .orElseThrow(
-                            () -> new IllegalStateException(
-                                    "Question with id (" + insertedId + ") doesn't exist."));
-
-            if (!categoryEntity.getQuestionsIds().contains(insertedId)) {
-                throw new IllegalStateException(
-                        "This category (" + categoryName + ") doesn't have a question with id (" + insertedId + ")");
-            }
-
-            listOfQuestionsToBeInserted.add(questionEntity);
-        });
-
-        Quiz quiz = new Quiz();
-        quiz.setCategory(categoryEntity);
-        quiz.setVersion(version);
-        quiz.setNoOfQuestions(listOfInsertedIds.size());
-        quiz.setQuestions(listOfQuestionsToBeInserted);
-        quizRepository.save(quiz);
-
-    }
-
-    @Transactional
-    public void updateVersionOfQuiz(Integer id, String version) {
-        Quiz quizEntity = quizRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Quiz with id (" + id + ") doesn't exist."));
-
-        Category categoryEntity = categoryRepository.findByCategoryName(quizEntity.getCategory().getCategoryName())
-                .get();
-
-        quizRepository.findAll().forEach(quiz -> {
-            if (Objects.equals(quiz.getVersion(), version)) {
-
-                throw new IllegalStateException(
-                        "Quiz updating failed: A quiz with this category '" + categoryEntity.getCategoryName() +
-                                "' and this version '" + version
-                                + "' already exists. \nPlease use a different version.");
-            }
-        });
-        quizEntity.setVersion(version);
-    }
-
-    @Transactional
-    public void addSpecificNumberOfRandomQuestionsToQuiz(Integer id, Integer noOfQuestions) {
-        Quiz quizEntity = quizRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Question with id (" + id + ") doesn't exist."));
-
-        if (noOfQuestions != null && noOfQuestions > 0) {
-
-            Category categoryEntity = categoryRepository.findByCategoryName(quizEntity.getCategory().getCategoryName())
-                    .get();
-
-            List<Question> listOfQuestionsInCategoryEntityNotInQuizEntity = categoryEntity.getQuestions().stream()
-                    .filter(question -> !quizEntity.getQuestions().contains(question))
-                    .collect(Collectors.toList());
-
-            quizEntity.getQuestions().addAll(listOfQuestionsInCategoryEntityNotInQuizEntity.subList(0, noOfQuestions));
-            quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
-
-        } else {
-            throw new IllegalStateException("Invalid number of questions");
+        public QuizAdminDTO getQuizById(Integer id) {
+                Quiz quizEntity = quizRepository.findById(id)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+                return mapper.map(quizEntity, QuizAdminDTO.class);
         }
-    }
 
-    @Transactional
-    public void removeSpecificNumberOfRandomQuestionsFromQuiz(Integer id, Integer noOfQuestions) {
-        Quiz quizEntity = quizRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Question with id (" + id + ") doesn't exist."));
+        public List<QuizAdminDTO> getQuizzesByCategoryName(String categoryName) {
 
-        if (noOfQuestions != null && noOfQuestions > 0) {
+                Category categoryEntity = categoryRepository.findByCategoryName(capitalizeFirstLetter(categoryName))
+                                .orElseThrow(() -> new CategoryNotFoundException(categoryName));
 
-            quizEntity.getQuestions().subList(0, noOfQuestions).clear();
-            quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+                List<Quiz> quizs = quizRepository.findByCategory(categoryEntity)
+                                .orElseThrow(() -> new QuizNotFoundException(categoryName));
 
-        } else {
-            throw new IllegalStateException("Invalid number of questions");
+                return mapper.mapList(quizs, QuizAdminDTO.class)
+                                .stream()
+                                .sorted(Comparator.comparing(QuizAdminDTO::getId))
+                                .collect(Collectors.toList());
+
         }
-    }
 
-    @Transactional
-    public void addSpecificNumberOfSelectedQuestionsToQuiz(Integer id, String ids) {
+        public QuizAdminDTO getQuizzesByCategoryNameAndVersion(String categoryName, String version) {
 
-        Quiz quizEntity = quizRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Quiz with id (" + id + ") doesn't exist."));
+                Category categoryEntity = categoryRepository.findByCategoryName(capitalizeFirstLetter(categoryName))
+                                .orElseThrow(() -> new CategoryNotFoundException(categoryName));
 
-        if (ids != null && ids.length() > 0) {
+                Quiz quizEntity = quizRepository
+                                .findByCategoryAndVersion(categoryEntity, version.toUpperCase())
+                                .orElseThrow(() -> new QuizNotFoundException(categoryName, version.toUpperCase()));
 
-            List<Integer> listOfIds = parseStringOfIdsToListOfIds(ids);
-
-            listOfIds.forEach(insertedId -> {
-                questionRepository.findById(insertedId).orElseThrow(
-                        () -> new IllegalStateException("Question with id (" + insertedId + ") doesn't exist."));
-            });
-
-            List<Integer> questionsIdsAlreadyExistInQuiz = listOfIds.stream()
-                    .filter(insertedId -> quizEntity.getQuestionsIds().contains(insertedId)).toList();
-
-            if (!questionsIdsAlreadyExistInQuiz.isEmpty()) {
-                throw new IllegalStateException("Question adding failed: A quiz with id " + id
-                        + " already has a question with id " + questionsIdsAlreadyExistInQuiz.toString());
-            }
-
-            Category categoryEntity = categoryRepository.findByCategoryName(quizEntity.getCategory().getCategoryName())
-                    .get();
-
-            List<Integer> invalidIds = listOfIds.stream()
-                    .filter(insertedId -> !categoryEntity.getQuestionsIds().contains(insertedId)).toList();
-
-            if (!invalidIds.isEmpty()) {
-                throw new IllegalStateException(
-                        "These IDs: " + invalidIds.toString() + " don't exist in " + categoryEntity.getCategoryName()
-                                + " category");
-            }
-
-            for (Integer insertedId : listOfIds) {
-                Question question = questionRepository.findById(insertedId)
-                        .orElseThrow(
-                                () -> new IllegalStateException("Quiz with id (" + insertedId + ") doesn't exist."));
-
-                quizEntity.getQuestions().add(question);
-            }
-            quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+                return mapper.map(quizEntity, QuizAdminDTO.class);
         }
-    }
 
-    @Transactional
-    public void removeSpecificNumberOfSelectedQuestionsFromQuiz(Integer id, String ids) {
-        Quiz quizEntity = quizRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Quiz with id (" + id + ") doesn't exist."));
-        List<Integer> listOfIds = parseStringOfIdsToListOfIds(ids);
+        public List<QuizScoreAdminDTO> getStudentScoresInQuiz(Integer id) {
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundInYourQuizzesException(id));
 
-        listOfIds.forEach(insertedId -> {
-            if (!quizEntity.getQuestionsIds().contains(insertedId)) {
-                throw new IllegalStateException(
-                        "A quiz with id (" + id + ") doesn't have a question with this id (" + insertedId + ")");
-            }
-        });
+                List<QuizScore> quizScores = quizScoreRepository.findByQuiz(quizEntity)
+                                .orElseThrow(() -> new QuizNotTakenByStudentException(id));
 
-        listOfIds.forEach(insertedId -> {
-            Question question = questionRepository.findById(insertedId).get();
-            quizEntity.getQuestions().remove(question);
-        });
-
-        quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
-    }
-
-    @Transactional
-    public void removeAllQuestionsFromQuizById(Integer id) {
-        Quiz quizEntity = quizRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Question with id (" + id + ") doesn't exist."));
-        quizEntity.getQuestions().removeAll(quizEntity.getQuestions());
-        quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
-    }
-
-    public void removeQuizById(Integer id) {
-        if (!quizRepository.findById(id).isPresent()) {
-            throw new IllegalStateException(
-                    "Question with id (" + id + ") doesn't exist.");
+                return mapper.mapList(quizScores, QuizScoreAdminDTO.class);
         }
-        quizRepository.deleteById(id);
-    }
 
-    private List<Integer> parseStringOfIdsToListOfIds(String ids) {
-        try {
-            return Arrays.stream(ids.split(","))
-                    .map(String::trim)
-                    .map(Integer::valueOf)
-                    .collect(Collectors.toList());
-        } catch (NumberFormatException e) {
-            String invalidInput = e.getMessage().replaceAll("For input string: ", "");
-            throw new IllegalStateException("Invalid ID format: \"" + invalidInput
-                    + "\". \nPlease provide numerical values separated by commas for the 'ids' parameter.");
+        public List<ModelAnswerDTO> getQuizModelAnswers(Integer id) {
+
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundInYourQuizzesException(id));
+                List<ModelAnswerDTO> answerSubmissionDTOs = mapper.mapList(quizEntity.getQuestions(),
+                                ModelAnswerDTO.class);
+                return answerSubmissionDTOs;
         }
-    }
+
+        public QuizAdminDTO createQuizWithRandomQuestions(String categoryName, Integer noOfQuestions, String version) {
+
+                Category categoryEntity = categoryRepository.findByCategoryName(capitalizeFirstLetter(categoryName))
+                                .orElseThrow(() -> new CategoryNotFoundException(categoryName));
+
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+                admin.getQuizzes().forEach(quiz -> {
+                        if (Objects.equals(quiz.getVersion(), version.toUpperCase())
+                                        && Objects.equals(quiz.getCategory().getCategoryName(),
+                                                        capitalizeFirstLetter(categoryName))) {
+                                throw new QuizAlreadyExistsException(categoryName, version.toUpperCase(), quiz.getId());
+                        }
+                });
+
+                if (noOfQuestions > categoryEntity.getQuestions().size()) {
+                        throw new CategoryHasInsufficientQuestionsException(categoryName, noOfQuestions,
+                                        categoryEntity.getQuestions().size());
+                }
+
+                List<Question> listOfRandomQuestions = questionRepository
+                                .getRandomQuestionsOfSpecificCategory(categoryEntity.getId(), noOfQuestions).get();
+
+                Quiz quiz = new Quiz();
+                quiz.setCategory(categoryEntity);
+                quiz.setQuestions(listOfRandomQuestions);
+                quiz.setVersion(version.toUpperCase());
+                quiz.setNoOfQuestions(noOfQuestions);
+                quiz.setAdmin(admin);
+                quizRepository.save(quiz);
+
+                // Retrieve the quiz to verify successful storage and availability for retrieval
+                Quiz quizEntity = quizRepository
+                                .findByAdminAndCategoryAndVersion(admin, categoryEntity, version.toUpperCase())
+                                .orElseThrow(() -> new QuizNotFoundException(categoryName, version.toUpperCase()));
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        public QuizAdminDTO createQuizWithSelectedQuestionsIds(String categoryName, String version,
+                        String stringOfIds) {
+
+                if (isNullOrEmpty(stringOfIds)) {
+                        throw new IdsNotSelectedException();
+                }
+
+                Category categoryEntity = categoryRepository.findByCategoryName(capitalizeFirstLetter(categoryName))
+                                .orElseThrow(
+                                                () -> new CategoryNotFoundException(categoryName));
+
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                admin.getQuizzes().forEach(quiz -> {
+                        if (Objects.equals(quiz.getVersion(), version.toUpperCase())
+                                        && Objects.equals(quiz.getCategory().getCategoryName(),
+                                                        capitalizeFirstLetter(categoryName))) {
+                                throw new QuizAlreadyExistsException(categoryName, version.toUpperCase(), quiz.getId());
+                        }
+                });
+
+                List<Question> listOfQuestionsForQuizCreation = new ArrayList<>();
+
+                List<Integer> listOfInsertedIds = parseStringOfIdsToListOfIds(stringOfIds);
+                listOfInsertedIds.forEach(insertedId -> {
+                        Question questionEntity = questionRepository.findById(insertedId)
+                                        .orElseThrow(
+                                                        () -> new QuestionNotFoundException(insertedId));
+
+                        if (!categoryEntity.getQuestions().contains(questionEntity)) {
+                                throw new QuestionNotFoundException(categoryName, insertedId);
+                        }
+
+                        listOfQuestionsForQuizCreation.add(questionEntity);
+                });
+
+                Quiz quiz = new Quiz();
+                quiz.setCategory(categoryEntity);
+                quiz.setVersion(version.toUpperCase());
+                quiz.setNoOfQuestions(listOfInsertedIds.size());
+                quiz.setQuestions(listOfQuestionsForQuizCreation);
+                quiz.setAdmin(admin);
+                quizRepository.save(quiz);
+
+                // Retrieve the quiz to verify successful storage and availability for retrieval
+                Quiz quizEntity = quizRepository.findByCategoryAndVersion(categoryEntity, version.toUpperCase())
+                                .orElseThrow(() -> new QuizNotFoundException(categoryName, version.toUpperCase()));
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        @Transactional
+        public QuizAdminDTO updateVersionOfQuiz(Integer id, String version) {
+
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+
+                Category categoryEntity = categoryRepository
+                                .findByCategoryName(quizEntity.getCategory().getCategoryName())
+                                .get();
+
+                admin.getQuizzes().forEach(quiz -> {
+                        if (Objects.equals(quiz.getVersion(), version.toUpperCase())
+                                        && Objects.equals(quiz.getCategory().getCategoryName(),
+                                                        quizEntity.getCategory().getCategoryName())) {
+                                throw new QuizAlreadyExistsException(categoryEntity.getCategoryName(),
+                                                version.toUpperCase(),
+                                                quiz.getId());
+                        }
+                });
+                quizEntity.setVersion(version.toUpperCase());
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        @Transactional
+        public QuizAdminDTO addNumberOfRandomQuestionsToQuiz(Integer id, Integer noOfQuestions) {
+
+                if (noOfQuestions == null && noOfQuestions <= 0) {
+                        throw new IllegalStateException("Invalid number of questions");
+                }
+
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+
+                Category categoryEntity = categoryRepository
+                                .findByCategoryName(quizEntity.getCategory().getCategoryName())
+                                .get();
+
+                List<Question> listOfQuestionsInCategoryEntityAndNotInQuizEntity = categoryEntity.getQuestions()
+                                .stream()
+                                .filter(question -> !quizEntity.getQuestions().contains(question))
+                                .collect(Collectors.toList());
+
+                if (listOfQuestionsInCategoryEntityAndNotInQuizEntity.size() < noOfQuestions) {
+                        throw new CategoryHasInsufficientQuestionsException(categoryEntity.getCategoryName(),
+                                        noOfQuestions,
+                                        listOfQuestionsInCategoryEntityAndNotInQuizEntity.size());
+                }
+
+                quizEntity.getQuestions()
+                                .addAll(listOfQuestionsInCategoryEntityAndNotInQuizEntity.subList(0,
+                                                noOfQuestions));
+                quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        @Transactional
+        public QuizAdminDTO addNumberOfSelectedQuestionsToQuiz(Integer id, String ids) {
+
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+
+                if (ids != null && ids.length() > 0) {
+
+                        List<Integer> listOfIds = parseStringOfIdsToListOfIds(ids);
+
+                        listOfIds.forEach(insertedId -> {
+                                questionRepository.findById(insertedId).orElseThrow(
+                                                () -> new QuestionNotFoundException(insertedId));
+                        });
+
+                        quizEntity.getQuestions().forEach(
+                                        question -> {
+                                                if (listOfIds.contains(question.getId())) {
+                                                        throw new QuestionAlreadyExistsException(question.getId(),
+                                                                        quizEntity.getId());
+                                                }
+                                        });
+
+                        List<Question> questionsToBeAdded = listOfIds.stream()
+                                        .map(insertedId -> questionRepository.findById(insertedId).get())
+                                        .collect(Collectors.toList());
+
+                        quizEntity.getQuestions().addAll(questionsToBeAdded);
+                        quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+                }
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        @Transactional
+        public QuizAdminDTO removeNumberOfRandomQuestionsFromQuiz(Integer id, Integer noOfQuestions) {
+
+                if (noOfQuestions == null && noOfQuestions <= 0) {
+                        throw new IllegalStateException("Invalid number of questions");
+                }
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+
+                quizEntity.getQuestions().subList(0, noOfQuestions).clear();
+                quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        @Transactional
+        public QuizAdminDTO removeSelectedQuestionsFromQuiz(Integer id, String stringOfIds) {
+
+                if (isNullOrEmpty(stringOfIds)) {
+                        throw new IdsNotSelectedException();
+                }
+                
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+
+                List<Integer> listOfIds = parseStringOfIdsToListOfIds(stringOfIds);
+
+                listOfIds.forEach(insertedId -> {
+                        questionRepository.findById(insertedId).orElseThrow(
+                                        () -> new QuestionNotFoundException(insertedId));
+                });
+
+                listOfIds.forEach(insertedId -> {
+                        if (!quizEntity.getQuestions().stream().map(Question::getId).toList().contains(insertedId)) {
+                                throw new QuestionNotFoundException(insertedId, quizEntity.getId());
+                        }
+                });
+
+                listOfIds.forEach(insertedId -> {
+                        Question question = questionRepository.findById(insertedId).get();
+                        quizEntity.getQuestions().remove(question);
+                });
+
+                quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+
+                QuizAdminDTO quizAdminDTO = mapper.map(quizEntity, QuizAdminDTO.class);
+                return quizAdminDTO;
+        }
+
+        @Transactional
+        public QuizAdminDTO removeAllQuestionsFromQuizById(@NonNull Integer id) {
+                Quiz quizEntity = quizRepository.findById(id)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+                quizEntity.getQuestions().removeAll(quizEntity.getQuestions());
+                quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());
+                return mapper.map(quizEntity, QuizAdminDTO.class);
+        }
+
+        public QuizAdminDTO removeQuizById(@NonNull Integer id) {
+                String username = getAuthentication().getName();
+                Admin admin = adminRepository.findByUsername(username)
+                                .orElseThrow(() -> new UserNotFoundException(ROLE, username));
+
+                Quiz quizEntity = quizRepository.findByIdAndAdmin(id, admin)
+                                .orElseThrow(() -> new QuizNotFoundException(id));
+                QuizAdminDTO quizAdminDTO = mapper.map(quizEntity, QuizAdminDTO.class);
+                quizRepository.deleteById(id);
+                return quizAdminDTO;
+        }
+
+        private List<Integer> parseStringOfIdsToListOfIds(String ids) {
+                try {
+                        return Arrays.stream(ids.split(","))
+                                        .map(String::trim)
+                                        .map(Integer::valueOf)
+                                        .collect(Collectors.toList());
+                } catch (NumberFormatException e) {
+                        String invalidInput = e.getMessage().replaceAll("For input string: ", "");
+                        throw new InvalidIdsException(invalidInput);
+                }
+        }
+
+        private boolean isNullOrEmpty(String str) {
+                return str == null || str.trim().isEmpty();
+        }
+
+        private String capitalizeFirstLetter(String input) {
+                if (input == null || input.isEmpty()) {
+                        return input;
+                }
+                return input.substring(0, 1).toUpperCase() + input.substring(1);
+        }
+
+        private Authentication getAuthentication() {
+                return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                                .orElseThrow(() -> new IllegalStateException("Authentication Not Found."));
+        }
 
 }

@@ -1,8 +1,6 @@
 package com.example.quiz_application.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +12,7 @@ import com.example.quiz_application.repositories.StudentRepository;
 import com.example.quiz_application.security.CustomUserDetails;
 
 @Service
-public class AuthenticationService {
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
+public class RegistrationService {
 
     @Autowired
     private AdminRepository adminRepository;
@@ -53,10 +48,5 @@ public class AuthenticationService {
         } else {
             throw new RegistrationException("Registration Failed");
         }
-    }
-
-    public void authenticateUser(String username, String password) {
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(username, password));
     }
 }

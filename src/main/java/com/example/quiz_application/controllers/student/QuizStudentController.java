@@ -3,8 +3,9 @@ package com.example.quiz_application.controllers.student;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.quiz_application.dto.student.AnswerSubmissionDTO;
+import com.example.quiz_application.dto.student.QuizScoreStudentDTO;
 import com.example.quiz_application.dto.student.QuizStudentDTO;
-import com.example.quiz_application.dto.student.SubmittedQuizStudentDTO;
 import com.example.quiz_application.services.student.QuizStudentService;
 
 import java.util.List;
@@ -13,46 +14,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("api/v1/student/quiz")
+@RequestMapping("api/v1/student/quizzes")
 public class QuizStudentController {
+
     @Autowired
     QuizStudentService quizStudentService;
 
-    @GetMapping
-    public QuizStudentDTO getQuiz(@RequestParam(required = true) String categoryName,
-            @RequestParam(required = true) String version) {
+    @GetMapping("/category/{categoryName}")
+    public ResponseEntity<List<QuizStudentDTO>> getQuizzesByCategory(@PathVariable String categoryName) {
 
-        return quizStudentService.getQuiz(categoryName, version);
+        List<QuizStudentDTO> quizStudentDTOs = quizStudentService.retrieveQuiz(categoryName);
+        return ResponseEntity.ok().body(quizStudentDTOs);
 
     }
 
-    // @PostMapping("/submit-answers")
-    // public void submitAnswers(@RequestParam(required = true) String categoryName,
-    //         @RequestParam(required = true) String version, @RequestBody(required = true) List<String> studentAnswers,
-    //         RedirectAttributes redirectAttributes) {
+    @GetMapping("/my-quiz-scores")
+    public ResponseEntity<List<QuizScoreStudentDTO>> showQuestionsWithModelAndSubmittedAnswers() {
 
-    //     Integer score = quizStudentService.submitAnswers(categoryName, version, studentAnswers);
+        List<QuizScoreStudentDTO> quizScoreStudentDTOs = quizStudentService.retrieveStudentQuizScores();
+        return ResponseEntity.status(HttpStatus.OK).body(quizScoreStudentDTOs);
+    }
 
-    //     String redirectUrl = String.format("redirect:/student/quiz/show-results?categoryName=%s&version=%s&score=%d",
-    //             categoryName, version, score);
-    //     // return redirectUrl;
-    // }
+    @GetMapping("/id/{id}/take-quiz")
+    public ResponseEntity<QuizStudentDTO> getQuizzesByCategory(@PathVariable Integer id) {
 
-    @GetMapping("/show-results")
-    public ResponseEntity<SubmittedQuizStudentDTO> showQuestionsWithModelAndSubmittedAnswers(
-            @RequestParam String categoryName,
-            @RequestParam String version,
-            @RequestParam Integer score,
-            @RequestBody List<String> studentAnswers) {
+        QuizStudentDTO quizStudentDTOs = quizStudentService.retrieveQuizById(id);
+        return ResponseEntity.ok().body(quizStudentDTOs);
 
-        SubmittedQuizStudentDTO quizstudentDTOAfterSubmit = quizStudentService.showQuestionsWithModelAndSubmittedAnswers(
-                categoryName, version,
-                score, studentAnswers);
-        return ResponseEntity.status(HttpStatus.OK).body(quizstudentDTOAfterSubmit);
+    }
+
+    @PostMapping("/id/{id}/submit-answers")
+    public ResponseEntity<String> submitAnswers(@PathVariable Integer id,
+            @RequestBody List<AnswerSubmissionDTO> answerSubmissions) {
+
+        Integer score = quizStudentService.submitAnswers(id, answerSubmissions);
+
+        return ResponseEntity.ok().body("Answers submitted successfully\nYour score: " + score);
     }
 
 }

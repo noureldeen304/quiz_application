@@ -1,4 +1,4 @@
-package com.example.quiz_application.config.exceptions;
+package com.example.quiz_application.config.exceptions.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler(RegistrationException.class)
-    public ResponseEntity<String> handleRegistrationException(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<String> handleAuthenticationException(AuthenticationException e) {
@@ -37,14 +32,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(message);
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> handleInvalidInputException(IllegalStateException ex) {
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-    }
-
 }

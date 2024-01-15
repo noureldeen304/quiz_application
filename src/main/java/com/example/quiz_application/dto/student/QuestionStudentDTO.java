@@ -11,12 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class QuestionStudentDTO {
-
+    private Integer id;
     private String questionTitle;
     private String option1;
     private String option2;
     private String option3;
     private String option4;
-
-
 }

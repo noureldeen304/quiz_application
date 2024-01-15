@@ -20,7 +20,7 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "quizzes")
 @Builder
 public class Admin {
     @Id
@@ -38,5 +38,9 @@ public class Admin {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "admin")
     private List<Quiz> quizzes;
+
+    public String getAdminName() {
+        return firstName + " "+ lastName;
+    }
     
 }

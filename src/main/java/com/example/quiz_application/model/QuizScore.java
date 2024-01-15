@@ -8,12 +8,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "student_quiz_scores")
-public class StudentQuizScore {
+@Builder
+public class QuizScore {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "student_quiz_score_sequence")
     @SequenceGenerator(name = "student_quiz_score_sequence", sequenceName = "student_quiz_score_sequence", allocationSize = 1)

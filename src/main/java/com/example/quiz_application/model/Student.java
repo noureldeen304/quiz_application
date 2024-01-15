@@ -38,6 +38,10 @@ public class Student {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
     @Column(name = "quiz_scores")
-    private List<StudentQuizScore> quizScores;
+    private List<QuizScore> quizScores;
+
+    public String getStudentName() {
+        return firstName + " "+ lastName;
+    }
 
 }

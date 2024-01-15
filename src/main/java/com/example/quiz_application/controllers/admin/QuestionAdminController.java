@@ -26,31 +26,34 @@ public class QuestionAdminController {
     QuestionAdminService service;
 
     @GetMapping
-    public List<QuestionAdminDTO> getAllQuestions() {
+    public ResponseEntity<List<QuestionAdminDTO>> getAllQuestions() {
         List<QuestionAdminDTO> questions = service.getAllQuestions();
         questions.sort(Comparator.comparing(QuestionAdminDTO::getId));
-        return questions;
+        return ResponseEntity.status(HttpStatus.OK).body(questions);
     }
 
     @GetMapping(value = "/category/{category}")
-    public List<QuestionAdminDTO> getQuestionByCategory(@PathVariable String category) {
-        return service.getQuestionsByCategory(category);
+    public ResponseEntity<List<QuestionAdminDTO>> getQuestionByCategory(@PathVariable String category) {
+        List<QuestionAdminDTO> questions = service.getQuestionsByCategory(category);
+        return ResponseEntity.status(HttpStatus.OK).body(questions);
     }
 
     @GetMapping(value = "/difficultylevel/{difficultylevel}")
-    public List<QuestionAdminDTO> getQuestionBydifficultyLevel(@PathVariable String difficultylevel) {
-        return service.getQuestionsBydifficultyLevel(difficultylevel);
+    public ResponseEntity<List<QuestionAdminDTO>> getQuestionBydifficultyLevel(@PathVariable String difficultylevel) {
+        List<QuestionAdminDTO> questions = service.getQuestionsBydifficultyLevel(difficultylevel);
+        return ResponseEntity.status(HttpStatus.OK).body(questions);
     }
 
     @GetMapping(value = "/id/{id}")
-    public QuestionAdminDTO getQuestionById(@PathVariable Integer id) {
-        return service.getQuestionById(id);
+    public ResponseEntity<QuestionAdminDTO> getQuestionById(@PathVariable Integer id) {
+        QuestionAdminDTO question = service.getQuestionById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(question);
     }
 
-    @PostMapping(value = "/addquestion")
+    @PostMapping(value = "/add_question")
     public ResponseEntity<String> addNewQuestion(@RequestBody QuestionAdminDTO question) {
         service.addNewQuestion(question);
-        return ResponseEntity.status(HttpStatus.OK).body("");
+        return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
 
     @PutMapping(value = "/modify/{id}")
@@ -67,13 +70,13 @@ public class QuestionAdminController {
         QuestionAdminDTO updatedQuestion = service.updateQuestion(id, categoryName, difficultyLevel, questionTitle,
                 option1, option2, option3,
                 option4, answer);
-        return ResponseEntity.status(HttpStatus.OK).body(updatedQuestion);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(updatedQuestion);
     }
 
     @DeleteMapping(value = "/remove/{id}")
-    public ResponseEntity<String> removeQuestion(@PathVariable Integer id) {
-        service.removeQuestion(id);
-        return ResponseEntity.status(HttpStatus.OK).body("");
+    public ResponseEntity<QuestionAdminDTO> removeQuestion(@PathVariable Integer id) {
+        QuestionAdminDTO questionAdminDTO = service.removeQuestion(id);
+        return ResponseEntity.status(HttpStatus.OK).body(questionAdminDTO);
     }
 
 }

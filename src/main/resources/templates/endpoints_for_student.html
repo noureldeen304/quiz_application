@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome</title>
     <style>
         /* Styles omitted for brevity */
-        
+
         h1 {
             text-align: center;
         }
-        
+
         table {
             margin: 0 auto;
             border-collapse: collapse;
             width: 80%;
         }
-        
-        th, td {
+
+        th,
+        td {
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        
+
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
     </style>
 </head>
+
 <body>
     <h1>Welcome to the Application, here are the endpoints available for you</h1>
     <table>
@@ -37,18 +40,23 @@
             <th>Description</th>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions</td>
-            <td>Retrieve the list of all questions with admin privileges</td>
+            <td>/api/v1/student/quizzes/category/{categoryName}</td>
+            <td>Retrieves quizzes based on the specified category name.</td>
         </tr>
         <tr>
-            <td>/api/v1/admin/questions/category/{category}</td>
-            <td>Retrieve the list of all products available</td>
+            <td>/api/v1/student/quizzes/my-quiz-scores</td>
+            <td>Retrieves quiz scores and details for the currently authenticated student.</td>
         </tr>
         <tr>
-            <td>/api/v1/user/profile</td>
-            <td>Retrieve the user's profile information</td>
+            <td>/api/v1/student/quizzes/id/{id}/take-quiz</td>
+            <td>Retrieves details for a specific quiz based on the provided quiz ID.</td>
+        </tr>
+        <tr>
+            <td>/api/v1/student/quizzes/id/{id}/submit-answers</td>
+            <td>Submits answers for a specific quiz based on the provided quiz ID. Returns the score after submission.</td>
         </tr>
         <!-- Add more rows for additional endpoints -->
     </table>
 </body>
+
 </html>

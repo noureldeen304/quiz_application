@@ -12,9 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuizAdminDTO {
-    Integer id;
-    Integer noOfQuestions;
-    String version;
-    String categoryName;
-    List<QuestionAdminDTO> questions;
+    private Integer id;
+    private String author;
+    private Integer noOfQuestions;
+    private String version;
+    private String categoryName;
+    private List<QuestionAdminDTO> questions;
 }

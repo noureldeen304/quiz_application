@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.quiz_application.dto.admin.ModelAnswerDTO;
 import com.example.quiz_application.dto.admin.QuizAdminDTO;
 import com.example.quiz_application.dto.admin.QuizScoreAdminDTO;
-import com.example.quiz_application.services.admin.QuizAdminService;
+import com.example.quiz_application.services.interfaces.admin.IQuizAdminService;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequestMapping(path = "api/v1/admin/quizzes")
 public class QuizAdminController {
     @Autowired
-    QuizAdminService quizService;
+    IQuizAdminService quizService;
 
     @GetMapping
     public ResponseEntity<List<QuizAdminDTO>> getAllOfQuizzes() {

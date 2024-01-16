@@ -89,27 +89,25 @@ Explore the project's RESTful API endpoints:
 ### Quiz Analysis
 
 - **Get Model Answers for Quiz:**
-  - [GET /api/v1/admin/quizzes/id/{id}/get-model-answers](#) - Retrieve model answers for a specific quiz.
+  - [GET /api/v1/admin/quizzes/id/{id}/model-answers](#) - Retrieve model answers for a specific quiz.
 
 - **Get Students' Scores for Quiz:**
-  - [GET /api/v1/admin/quizzes/id/{id}/get-students-scores](#) - Retrieve students' scores for a specific quiz.
+  - [GET /api/v1/admin/quizzes/id/{id}/students-scores](#) - Retrieve students' scores for a specific quiz.
 
 ## Student Endpoints
 
 ### Quiz Access
 
-- **Get All Quizzes:**
-  - [GET /api/v1/student/quizzes](#) - Retrieve all quizzes available to students.
+- **Get Quizzes by Category:**
+  - [GET /api/v1/student/quizzes/category/{categoryName}](#) - Retrieves quizzes based on the specified category name.
 
-- **Get Quiz by Category and Version:**
-  - [GET /api/v1/student/quiz](#) - Retrieve a specific quiz by category and version.
+- **Get Student Quiz Scores:**
+  - [GET /api/v1/student/quizzes/my-quiz-scores](#) - Retrieves quiz scores and details for the currently authenticated student.
+
+- **Take Quiz:**
+  - [GET /api/v1/student/quizzes/id/{id}/take-quiz](#) - Retrieves details for a specific quiz based on the provided quiz ID.
 
 ### Quiz Submission
 
-- **Submit Answers:**
-  - [POST /api/v1/student/quiz/submit-answers](#) - Submit answers for a quiz.
-
-### Quiz Results
-
-- **Show Results:**
-  - [GET /api/v1/student/quiz/show-results](#) - Retrieve results and correct answers for a quiz.
+- **Submit Answers and Get Score:**
+  - [POST /api/v1/student/quizzes/id/{id}/submit-answers](#) - Submits answers for a specific quiz based on the provided quiz ID. Returns the score after submission.

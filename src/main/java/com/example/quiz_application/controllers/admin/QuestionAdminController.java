@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quiz_application.dto.admin.QuestionAdminDTO;
-import com.example.quiz_application.services.admin.QuestionAdminService;
+import com.example.quiz_application.services.interfaces.admin.IQuestionAdminService;
 
 @RestController
 @RequestMapping("api/v1/admin/questions")
 public class QuestionAdminController {
     @Autowired
-    QuestionAdminService service;
+    IQuestionAdminService service;
 
     @GetMapping
     public ResponseEntity<List<QuestionAdminDTO>> getAllQuestions() {

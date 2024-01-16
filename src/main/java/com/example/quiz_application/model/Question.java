@@ -1,9 +1,5 @@
 package com.example.quiz_application.model;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import com.example.quiz_application.enums.DifficultyLevel;
 
 import jakarta.persistence.Column;

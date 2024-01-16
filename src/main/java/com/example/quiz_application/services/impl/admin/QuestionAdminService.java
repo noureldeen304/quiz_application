@@ -1,4 +1,4 @@
-package com.example.quiz_application.services.admin;
+package com.example.quiz_application.services.impl.admin;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,11 +22,13 @@ import com.example.quiz_application.model.Category;
 import com.example.quiz_application.model.Question;
 import com.example.quiz_application.repositories.CategoryRepository;
 import com.example.quiz_application.repositories.QuestionRepository;
+import com.example.quiz_application.services.interfaces.admin.IQuestionAdminService;
 
 import jakarta.transaction.Transactional;
+import lombok.NonNull;
 
 @Service
-public class QuestionAdminService {
+public class QuestionAdminService implements IQuestionAdminService{
 
     @Autowired
     private Mapper mapper;
@@ -55,7 +57,7 @@ public class QuestionAdminService {
         return mapper.mapList(listOfQuestions, QuestionAdminDTO.class);
     }
 
-    public QuestionAdminDTO getQuestionById(Integer id) {
+    public QuestionAdminDTO getQuestionById(@NonNull Integer id) {
         questionRepository.findById(id)
                 .orElseThrow(() -> new QuestionNotFoundException(id));
         Question questionFromDB = questionRepository.findById(id).get();
@@ -91,7 +93,7 @@ public class QuestionAdminService {
     }
 
     @Transactional
-    public QuestionAdminDTO updateQuestion(Integer id,
+    public QuestionAdminDTO updateQuestion(@NonNull Integer id,
             String categoryName,
             String difficultyLevel,
             String questionTitle,
@@ -209,7 +211,7 @@ public class QuestionAdminService {
         return mapper.map(questionFromDB, QuestionAdminDTO.class);
     }
 
-    public QuestionAdminDTO removeQuestion(Integer id) {
+    public QuestionAdminDTO removeQuestion(@NonNull Integer id) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new QuestionNotFoundException(id));
         questionRepository.deleteById(id);

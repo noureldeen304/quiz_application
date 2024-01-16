@@ -1,4 +1,4 @@
-package com.example.quiz_application.services.admin;
+package com.example.quiz_application.services.impl.admin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,12 +37,13 @@ import com.example.quiz_application.repositories.CategoryRepository;
 import com.example.quiz_application.repositories.QuestionRepository;
 import com.example.quiz_application.repositories.QuizRepository;
 import com.example.quiz_application.repositories.QuizScoreRepository;
+import com.example.quiz_application.services.interfaces.admin.IQuizAdminService;
 
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 
 @Service
-public class QuizAdminService {
+public class QuizAdminService implements IQuizAdminService {
 
         @Autowired
         private Mapper mapper;
@@ -83,7 +84,7 @@ public class QuizAdminService {
 
         }
 
-        public QuizAdminDTO getQuizById(Integer id) {
+        public QuizAdminDTO getQuizById(@NonNull Integer id) {
                 Quiz quizEntity = quizRepository.findById(id)
                                 .orElseThrow(() -> new QuizNotFoundException(id));
                 return mapper.map(quizEntity, QuizAdminDTO.class);
@@ -208,15 +209,17 @@ public class QuizAdminService {
 
                 List<Integer> listOfInsertedIds = parseStringOfIdsToListOfIds(stringOfIds);
                 listOfInsertedIds.forEach(insertedId -> {
-                        Question questionEntity = questionRepository.findById(insertedId)
-                                        .orElseThrow(
-                                                        () -> new QuestionNotFoundException(insertedId));
+                        if (insertedId != null) {
+                                Question questionEntity = questionRepository.findById(insertedId)
+                                                .orElseThrow(
+                                                                () -> new QuestionNotFoundException(insertedId));
 
-                        if (!categoryEntity.getQuestions().contains(questionEntity)) {
-                                throw new QuestionNotFoundException(categoryName, insertedId);
+                                if (!categoryEntity.getQuestions().contains(questionEntity)) {
+                                        throw new QuestionNotFoundException(categoryName, insertedId);
+                                }
+
+                                listOfQuestionsForQuizCreation.add(questionEntity);
                         }
-
-                        listOfQuestionsForQuizCreation.add(questionEntity);
                 });
 
                 Quiz quiz = new Quiz();
@@ -261,9 +264,9 @@ public class QuizAdminService {
         }
 
         @Transactional
-        public QuizAdminDTO addNumberOfRandomQuestionsToQuiz(Integer id, Integer noOfQuestions) {
+        public QuizAdminDTO addNumberOfRandomQuestionsToQuiz(Integer id, @NonNull Integer noOfQuestions) {
 
-                if (noOfQuestions == null && noOfQuestions <= 0) {
+                if (noOfQuestions <= 0) {
                         throw new IllegalStateException("Invalid number of questions");
                 }
 
@@ -312,8 +315,10 @@ public class QuizAdminService {
                         List<Integer> listOfIds = parseStringOfIdsToListOfIds(ids);
 
                         listOfIds.forEach(insertedId -> {
-                                questionRepository.findById(insertedId).orElseThrow(
-                                                () -> new QuestionNotFoundException(insertedId));
+                                if (insertedId != null) {
+                                        questionRepository.findById(insertedId).orElseThrow(
+                                                        () -> new QuestionNotFoundException(insertedId));
+                                }
                         });
 
                         quizEntity.getQuestions().forEach(
@@ -325,7 +330,7 @@ public class QuizAdminService {
                                         });
 
                         List<Question> questionsToBeAdded = listOfIds.stream()
-                                        .map(insertedId -> questionRepository.findById(insertedId).get())
+                                        .map(insertedId ->  questionRepository.findById(insertedId).get())
                                         .collect(Collectors.toList());
 
                         quizEntity.getQuestions().addAll(questionsToBeAdded);
@@ -335,9 +340,9 @@ public class QuizAdminService {
         }
 
         @Transactional
-        public QuizAdminDTO removeNumberOfRandomQuestionsFromQuiz(Integer id, Integer noOfQuestions) {
+        public QuizAdminDTO removeNumberOfRandomQuestionsFromQuiz(Integer id, @NonNull Integer noOfQuestions) {
 
-                if (noOfQuestions == null && noOfQuestions <= 0) {
+                if (noOfQuestions <= 0) {
                         throw new IllegalStateException("Invalid number of questions");
                 }
                 String username = getAuthentication().getName();
@@ -359,7 +364,7 @@ public class QuizAdminService {
                 if (isNullOrEmpty(stringOfIds)) {
                         throw new IdsNotSelectedException();
                 }
-                
+
                 String username = getAuthentication().getName();
                 Admin admin = adminRepository.findByUsername(username)
                                 .orElseThrow(() -> new UserNotFoundException(ROLE, username));
@@ -370,8 +375,10 @@ public class QuizAdminService {
                 List<Integer> listOfIds = parseStringOfIdsToListOfIds(stringOfIds);
 
                 listOfIds.forEach(insertedId -> {
-                        questionRepository.findById(insertedId).orElseThrow(
-                                        () -> new QuestionNotFoundException(insertedId));
+                        if (insertedId != null) {
+                                questionRepository.findById(insertedId).orElseThrow(
+                                                () -> new QuestionNotFoundException(insertedId));
+                        }
                 });
 
                 listOfIds.forEach(insertedId -> {
@@ -381,8 +388,10 @@ public class QuizAdminService {
                 });
 
                 listOfIds.forEach(insertedId -> {
-                        Question question = questionRepository.findById(insertedId).get();
-                        quizEntity.getQuestions().remove(question);
+                        if (insertedId != null) {
+                                Question question = questionRepository.findById(insertedId).get();
+                                quizEntity.getQuestions().remove(question);
+                        }
                 });
 
                 quizEntity.setNoOfQuestions(quizEntity.getQuestions().size());

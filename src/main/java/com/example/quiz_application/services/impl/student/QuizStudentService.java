@@ -1,4 +1,4 @@
-package com.example.quiz_application.services.student;
+package com.example.quiz_application.services.impl.student;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +26,12 @@ import com.example.quiz_application.repositories.CategoryRepository;
 import com.example.quiz_application.repositories.QuizRepository;
 import com.example.quiz_application.repositories.QuizScoreRepository;
 import com.example.quiz_application.repositories.StudentRepository;
+import com.example.quiz_application.services.interfaces.student.IQuizStudentService;
+
+import lombok.NonNull;
 
 @Service
-public class QuizStudentService {
+public class QuizStudentService implements IQuizStudentService{
     @Autowired
     private Mapper mapper;
     @Autowired
@@ -51,7 +54,7 @@ public class QuizStudentService {
         return mapper.mapList(quizs, QuizStudentDTO.class);
     }
 
-    public QuizStudentDTO retrieveQuizById(Integer id) {
+    public QuizStudentDTO retrieveQuizById(@NonNull Integer id) {
 
         Quiz quizEntity = quizRepository.findById(id).orElseThrow(() -> new QuizNotFoundException(id));
 
@@ -69,7 +72,7 @@ public class QuizStudentService {
         return mapper.mapList(quizScores, QuizScoreStudentDTO.class);
     }
 
-    public Integer submitAnswers(Integer id, List<AnswerSubmissionDTO> userSubmissions) {
+    public Integer submitAnswers(@NonNull Integer id, List<AnswerSubmissionDTO> userSubmissions) {
 
         Quiz quizEnity = quizRepository.findById(id).orElseThrow(() -> new QuizNotFoundException(id));
 
@@ -83,7 +86,10 @@ public class QuizStudentService {
                 .orElseThrow(() -> new UserNotFoundException(ROLE, username));
 
         QuizScore quizScore = QuizScore.builder().student(student).score(score).quiz(quizEnity).build();
-        quizScoreRepository.save(quizScore);
+
+        if (quizScore != null) {
+            quizScoreRepository.save(quizScore);
+        }
 
         return score;
     }

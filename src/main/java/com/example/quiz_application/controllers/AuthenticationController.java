@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.quiz_application.enums.Authority;
 import com.example.quiz_application.security.CustomUserDetails;
-import com.example.quiz_application.services.RegistrationService;
+import com.example.quiz_application.services.interfaces.IRegistrationService;
 
 @Controller
 public class AuthenticationController {
 
     @Autowired
-    RegistrationService registrationService;
+    IRegistrationService registrationService;
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {

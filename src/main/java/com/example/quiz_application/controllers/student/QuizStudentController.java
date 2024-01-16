@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.quiz_application.dto.student.AnswerSubmissionDTO;
 import com.example.quiz_application.dto.student.QuizScoreStudentDTO;
 import com.example.quiz_application.dto.student.QuizStudentDTO;
-import com.example.quiz_application.services.student.QuizStudentService;
+import com.example.quiz_application.services.interfaces.student.IQuizStudentService;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class QuizStudentController {
 
     @Autowired
-    QuizStudentService quizStudentService;
+    IQuizStudentService quizStudentService;
 
     @GetMapping("/category/{categoryName}")
     public ResponseEntity<List<QuizStudentDTO>> getQuizzesByCategory(@PathVariable String categoryName) {
